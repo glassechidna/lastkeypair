@@ -1,0 +1,12 @@
+package: github.com/glassechidna/lastkeypair
+import:
+- package: github.com/spf13/cobra
+- package: github.com/spf13/viper
+- package: github.com/aws/aws-sdk-go
+  version: ^1.10.3
+- package: golang.org/x/crypto
+  subpackages:
+  - ssh
+- package: github.com/pkg/errors
+  version: ^0.8.0
+- package: github.com/eawsy/aws-lambda-go-core
