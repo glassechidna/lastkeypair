@@ -10,3 +10,4 @@ import:
 - package: github.com/pkg/errors
   version: ^0.8.0
 - package: github.com/eawsy/aws-lambda-go-core
+- package: github.com/mitchellh/go-homedir
