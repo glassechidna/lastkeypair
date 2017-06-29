@@ -1,0 +1,19 @@
+(main.PrintableCertFields) {
+ Serial: (uint64) 0,
+ CertType: (uint32) 1,
+ KeyId: (string) (len=7) "asteele",
+ ValidPrincipals: ([]string) <nil>,
+ ValidAfter: (uint64) 1498736443,
+ ValidBefore: (uint64) 1498737643,
+ Permissions: (ssh.Permissions) {
+  CriticalOptions: (map[string]string) {
+  },
+  Extensions: (map[string]string) (len=5) {
+   (string) (len=22) "permit-port-forwarding": (string) "",
+   (string) (len=10) "permit-pty": (string) "",
+   (string) (len=14) "permit-user-rc": (string) "",
+   (string) (len=21) "permit-X11-forwarding": (string) "",
+   (string) (len=23) "permit-agent-forwarding": (string) ""
+  }
+ }
+}

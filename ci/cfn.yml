@@ -51,8 +51,8 @@ Resources:
                 kms:EncryptionContext:type: user
                 kms:EncryptionContext:from: "${aws:username}"
                 kms:EncryptionContext:account: "${kms:CallerAccount}"
-              Bool:
-                aws:MultiFactorAuthPresent: true
+#              Bool:
+#                aws:MultiFactorAuthPresent: true
           - Sid: KmsLambdaAuth
             Effect: Allow
             Principal:
