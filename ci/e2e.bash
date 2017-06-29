@@ -1,9 +1,12 @@
 #!/bin/bash
 set -euxo pipefail
 
+export PATH=$PATH:$HOME/.local/bin # for awscli
+
 S3_BUCKET=lkp-lambda-test
 S3_KEY=handler.zip
 
+make # build lambda package
 aws s3 cp handler.zip s3://$S3_BUCKET/$S3_KEY
 S3_OBJVER=$(aws s3api head-object --bucket $S3_BUCKET --key $S3_KEY --query VersionId --output text)
 

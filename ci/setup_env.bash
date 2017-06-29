@@ -11,3 +11,5 @@ tar -xvf glide.tgz
 
 curl -z stackit -o stackit -L https://github.com/glassechidna/stackit/releases/download/0.0.9/stackit_linux_amd64
 chmod +x stackit
+
+pip install --user awscli
