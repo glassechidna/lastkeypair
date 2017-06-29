@@ -18,10 +18,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/glassechidna/lastkeypair/common"
-	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"log"
 	"fmt"
+	"encoding/json"
 )
 
 // tokenCreateCmd represents the tokenCreate command
@@ -38,26 +38,38 @@ to quickly create a Cobra application.`,
 		// TODO: Work your own magic here
 		profile := viper.GetString("profile")
 		region := viper.GetString("region")
-
-		key := viper.GetString("key")
-		from := viper.GetString("from")
-		to := viper.GetString("to")
-		principal := viper.GetString("principal")
-
 		sess := common.AwsSession(profile, region)
-		client := kms.New(sess)
 
-		if len(from) == 0 {
-			stsClient := sts.New(sess)
-			stsFrom, err := common.CallerIdentityUser(stsClient)
-			if err != nil {
-				log.Panicf("No 'from' specified and could not determine caller identity: %s", err.Error())
-			}
-			from = *stsFrom
+		key := viper.GetString("kms-key")
+		from := viper.GetString("from")
+		fromAcct := viper.GetString("from-account")
+		to := viper.GetString("to")
+		typ := viper.GetString("principal")
+
+		params := common.TokenParams{
+			KeyId: key,
+			From: from,
+			FromAccount: fromAcct,
+			To: to,
+			Type: typ,
 		}
 
-		token := common.CreateToken(client, key, from, to, principal)
-		fmt.Println(token)
+		stsClient := sts.New(sess)
+		stsAcct, stsFrom, err := common.CallerIdentityUser(stsClient)
+		if err != nil {
+			log.Panicf("No 'from' specified and could not determine caller identity: %s", err.Error())
+		}
+
+		if len(params.From) == 0 {
+			params.From = *stsFrom
+		}
+		if len(params.FromAccount) == 0 {
+			params.FromAccount = *stsAcct
+		}
+
+		token := common.CreateToken(sess, params)
+		jsonToken, _ := json.Marshal(token)
+		fmt.Println(string(jsonToken))
 	},
 }
 
@@ -67,7 +79,8 @@ func init() {
 	tokenCreateCmd.PersistentFlags().String("profile", "", "")
 	tokenCreateCmd.PersistentFlags().String("region", "", "")
 
-	tokenCreateCmd.PersistentFlags().String("key", "", "")
+	tokenCreateCmd.PersistentFlags().String("kms-key", "alias/LastKeypair", "ID, ARN or alias of KMS key for auth to CA")
+	tokenCreateCmd.PersistentFlags().String("from-account", "", "AWS account of 'from' user")
 	tokenCreateCmd.PersistentFlags().String("from", "", "(defaults to IAM username)")
 	tokenCreateCmd.PersistentFlags().String("to", "", "")
 	tokenCreateCmd.PersistentFlags().String("principal", "user", "")

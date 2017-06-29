@@ -5,20 +5,40 @@ import (
 	"log"
 	"path"
 	"io/ioutil"
-	"os/exec"
-	"syscall"
-	"os"
-	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/pkg/errors"
+	"fmt"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"os/exec"
+	"syscall"
+	"os"
 )
 
 func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId string, args []string) {
 	kp, _ := MyKeyPair()
-	req := NewCertReq(sess, funcIdentity, kmsKeyId, kp.PublicKey)
+
+	stsClient := sts.New(sess)
+	stsAcct, stsFrom, err := CallerIdentityUser(stsClient)
+	if err != nil {
+		log.Panicf("error getting aws user identity: %+v\n", err)
+	}
+
+	token := CreateToken(sess, TokenParams{
+		KeyId: kmsKeyId,
+		From: *stsFrom,
+		FromAccount: *stsAcct,
+		To: funcIdentity,
+		Type: "user",
+	})
+
+	req := UserCertReqJson{
+		EventType: "UserCertReq",
+		Token: token,
+		InstanceId: "",
+		PublicKey: string(kp.PublicKey),
+	}
 
 	signed, err := RequestSignedCert(sess, lambdaFunc, req)
 	if err != nil {
@@ -28,6 +48,7 @@ func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId string, a
 	certPath := path.Join(AppDir(), "id_rsa-cert.pub")
 	ioutil.WriteFile(certPath, []byte(signed.SignedPublicKey), 0644)
 
+	fmt.Println(signed.SignedPublicKey)
 	lkpArgs := []string{
 		"ssh",
 		"-o",
@@ -39,25 +60,6 @@ func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId string, a
 	args = append(lkpArgs, args...)
 	sshPath, _ := exec.LookPath("ssh")
 	syscall.Exec(sshPath, args, os.Environ())
-}
-
-func NewCertReq(sess *session.Session, to, kmsKey string, publicKey []byte) UserCertReqJson {
-	kmsClient := kms.New(sess)
-
-	stsClient := sts.New(sess)
-	stsFrom, _ := CallerIdentityUser(stsClient)
-
-	token := CreateToken(kmsClient, kmsKey, *stsFrom, to, "user")
-
-	return UserCertReqJson{
-		EventType: "UserCertReq",
-		Token: token,
-		From: *stsFrom,
-		To: to,
-		Type: "user",
-		InstanceId: "",
-		PublicKey: string(publicKey),
-	}
 }
 
 func RequestSignedCert(sess *session.Session, lambdaArn string, req UserCertReqJson) (*UserCertRespJson, error) {

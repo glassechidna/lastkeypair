@@ -18,10 +18,7 @@ import (
 
 type UserCertReqJson struct {
 	EventType string
-	Token string
-	From string
-	To string
-	Type string
+	Token Token
 	InstanceId string
 	PublicKey string
 }
@@ -112,16 +109,6 @@ func LambdaHandle(evt json.RawMessage, ctx *runtime.Context) (interface{}, error
 	return resp, err
 }
 
-func ParseInput(input io.Reader) (*UserCertReqJson, error) {
-	req := UserCertReqJson{}
-	err := json.NewDecoder(input).Decode(&req)
-	if err != nil {
-		return nil, errors.Wrap(err, "decoding stdin json")
-	}
-
-	return &req, nil
-}
-
 func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson, error) {
 	sessOpts := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
@@ -132,21 +119,12 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 	if err != nil {
 		return nil, errors.Wrap(err, "creating aws session")
 	}
-	client := kms.New(sess)
 
-	payload := PlaintextPayload{}
-	payloadStr := ValidateToken(client, config.KeyId, req.From, config.KmsTokenIdentity, req.Type, req.Token)
-	err = json.Unmarshal([]byte(payloadStr), &payload)
-	if err != nil {
-		return nil, errors.Wrap(err, "decoding token json")
+	if !ValidateToken(sess, req.Token) {
+		return nil, errors.New("invalid token")
 	}
 
-	now := float64(time.Now().Unix())
-	if now < payload.NotBefore || now > payload.NotAfter {
-		return nil, errors.New("expired token")
-	}
-
-	signed, err := SignSsh(config.CaKeyBytes, []byte(req.PublicKey), config.ValidityDuration, req.From, []string{})
+	signed, err := SignSsh(config.CaKeyBytes, []byte(req.PublicKey), config.ValidityDuration, req.Token.Params.From, []string{})
 	if err != nil {
 		return nil, errors.Wrap(err, "signing ssh key")
 	}

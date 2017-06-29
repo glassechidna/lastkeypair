@@ -15,12 +15,11 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
-	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/spf13/viper"
 	"github.com/glassechidna/lastkeypair/common"
+	"fmt"
+	"encoding/base64"
 )
 
 // tokenValidateCmd represents the tokenValidate command
@@ -37,18 +36,31 @@ to quickly create a Cobra application.`,
 		// TODO: Work your own magic here
 		profile := viper.GetString("profile")
 		region := viper.GetString("region")
-
-		key := viper.GetString("key")
-		from := viper.GetString("from")
-		to := viper.GetString("to")
-		principal := viper.GetString("principal")
-		token := viper.GetString("token")
-
 		sess := common.AwsSession(profile, region)
-		client := kms.New(sess)
 
-		payload := common.ValidateToken(client, key, from, to, principal, token)
-		fmt.Println(payload)
+		key := viper.GetString("key-id")
+		from := viper.GetString("from")
+		fromAcct := viper.GetString("from-account")
+		to := viper.GetString("to")
+		typ := viper.GetString("type")
+		signature := viper.GetString("signature")
+
+		rawSig, _ := base64.StdEncoding.DecodeString(signature)
+
+		token := common.Token{
+			Params: common.TokenParams{
+				KeyId: key,
+				From: from,
+				FromAccount: fromAcct,
+				To: to,
+				Type: typ,
+			},
+			Signature: rawSig,
+		}
+
+
+		valid := common.ValidateToken(sess, token)
+		fmt.Printf("token valid: %+v\n", valid)
 	},
 }
 
@@ -58,12 +70,12 @@ func init() {
 	tokenValidateCmd.PersistentFlags().String("profile", "", "")
 	tokenValidateCmd.PersistentFlags().String("region", "", "")
 
-	tokenValidateCmd.PersistentFlags().String("key", "", "")
+	tokenValidateCmd.PersistentFlags().String("key-id", "", "")
 	tokenValidateCmd.PersistentFlags().String("from", "", "")
+	tokenValidateCmd.PersistentFlags().String("from-account", "", "")
 	tokenValidateCmd.PersistentFlags().String("to", "", "")
-	tokenValidateCmd.PersistentFlags().String("principal", "user", "")
-
-	tokenValidateCmd.PersistentFlags().String("token", "-", "")
+	tokenValidateCmd.PersistentFlags().String("type", "user", "")
+	tokenValidateCmd.PersistentFlags().String("signature", "", "")
 
 	//viper.BindPFlags(tokenValidateCmd.PersistentFlags())
 }

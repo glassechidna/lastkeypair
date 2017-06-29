@@ -93,11 +93,30 @@ type PlaintextPayload struct {
 	NotAfter float64
 }
 
-func CreateToken(client *kms.KMS, key, from, to, principal string) string {
+type TokenParams struct {
+	KeyId string
+	From string
+	FromAccount string
+	To string
+	Type string
+}
+
+func (params *TokenParams) ToKmsContext() map[string]*string {
 	context := make(map[string]*string)
-	context["from"] = &from
-	context["to"] = &to
-	context["type"] = &principal
+	context["from"] = &params.From
+	context["to"] = &params.To
+	context["type"] = &params.Type
+	context["account"] = &params.FromAccount
+	return context
+}
+
+type Token struct {
+	Params TokenParams
+	Signature []byte
+}
+
+func CreateToken(sess *session.Session, params TokenParams) Token {
+	context := params.ToKmsContext()
 
 	now := float64(time.Now().Unix())
 	end := now + 3600 // 1 hour
@@ -114,78 +133,63 @@ func CreateToken(client *kms.KMS, key, from, to, principal string) string {
 
 	input := &kms.EncryptInput{
 		Plaintext: plaintext,
-		KeyId: aws.String(key),
+		KeyId: &params.KeyId,
 		EncryptionContext: context,
 	}
 
+	client := kms.New(sess)
 	response, err := client.Encrypt(input)
 	if err != nil {
 		log.Panicf("Encrytion error: %s", err.Error())
 	}
 
 	blob := response.CiphertextBlob
-	return base64.StdEncoding.EncodeToString(blob)
+	params.KeyId = *response.KeyId
+	return Token{Params: params, Signature: blob}
 }
 
-func ValidateToken(client *kms.KMS, key, from, to, principal, token string) string {
-	context := make(map[string]*string)
-	context["from"] = &from
-	context["to"] = &to
-	context["type"] = &principal
-
-	binary, err := base64.StdEncoding.DecodeString(token)
-	if err != nil {
-		log.Panicf("Token base64 decoding error: %s", err.Error())
-	}
+func ValidateToken(sess *session.Session, token Token) bool {
+	context := token.Params.ToKmsContext()
 
 	input := &kms.DecryptInput{
-		CiphertextBlob: binary,
+		CiphertextBlob: token.Signature,
 		EncryptionContext: context,
 	}
 
+	client := kms.New(sess)
 	response, err := client.Decrypt(input)
 	if err != nil {
 		log.Panicf("Decryption error: %s", err.Error())
 	}
 
-	resolvedKey, err := resolvedKeyArn(client, key)
+	if token.Params.KeyId != *response.KeyId {
+		log.Panicf("Mismatching KMS key ids: %s and %s", token.Params.KeyId, *response.KeyId)
+	}
+
+	payload := PlaintextPayload{}
+	err = json.Unmarshal([]byte(response.Plaintext), &payload)
 	if err != nil {
-		log.Panicf("Couldn't determine key arn: %s", err.Error())
+		return false
+		//return nil, errors.Wrap(err, "decoding token json")
 	}
 
-	if *resolvedKey != *response.KeyId {
-		log.Panicf("Mismatching KMS key ids: %s and %s", *resolvedKey, *response.KeyId)
+	now := float64(time.Now().Unix())
+	if now < payload.NotBefore || now > payload.NotAfter {
+		return false
+		//return nil, errors.New("expired token")
 	}
 
-	return string(response.Plaintext)
+	return true
 }
 
-func resolvedKeyArn(client *kms.KMS, key string) (*string, error) {
-	if strings.HasPrefix(key, "arn:aws:kms:") {
-		return &key, nil
-	}
-
-	input := &kms.DescribeKeyInput{
-		KeyId: &key,
-	}
-
-	response, err := client.DescribeKey(input)
-
-	if response != nil {
-		return response.KeyMetadata.Arn, err
-	} else {
-		return nil, err
-	}
-}
-
-func CallerIdentityUser(client *sts.STS) (*string, error) {
+func CallerIdentityUser(client *sts.STS) (*string, *string, error) {
 	response, err := client.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 
 	if err == nil {
 		arn := *response.Arn
 		parts := strings.SplitN(arn, "/", 2)
-		return &parts[1], nil
+		return response.Account, &parts[1], nil
 	} else {
-		return nil, err
+		return nil, nil, err
 	}
 }
