@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/kms"
 	"encoding/json"
 	"time"
-	"io"
 	"github.com/pkg/errors"
 	"github.com/eawsy/aws-lambda-go-core/service/lambda/runtime"
 	"os"
