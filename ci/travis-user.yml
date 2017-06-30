@@ -24,7 +24,11 @@ Resources:
                   - s3:GetObject
                 Resource: !Sub arn:aws:s3:::${S3BucketName}/${S3KeyName}
               - Effect: Allow
-                Action: cloudformation:UpdateStack
+                Action:
+                  - cloudformation:UpdateStack
+                  - cloudformation:CreateStack
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:DescribeStacks
                 Resource: !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${LambdaStack}/*
 Outputs:
   UserName:
