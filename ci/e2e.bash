@@ -13,9 +13,9 @@ S3_OBJVER=$(aws s3api head-object --bucket $S3_BUCKET --key $S3_KEY --query Vers
 ./stackit up \
   --stack-name lkp-lambda-test \
   --template ci/cfn.yml \
-  --previous-param-value PstoreCAKeyBytesName
-  --previous-param-value S3Bucket
-  --previous-param-value S3Key
+  --previous-param-value PstoreCAKeyBytesName \
+  --previous-param-value S3Bucket \
+  --previous-param-value S3Key \
   --param-value S3ObjectVersion=$S3_OBJVER
 
 CONTAINER_ID=$(docker run -d glassechidna/sshello)
