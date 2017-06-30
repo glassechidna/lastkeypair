@@ -15,3 +15,16 @@ script:
   - upx-3.93-amd64_linux/upx lastkeypair_{linux_amd64,windows_amd64.exe} # upx 3.93 creates buggy darwin exes, fixed in unreleased 3.94
   - make
   - ci/e2e.bash
+
+deploy:
+  provider: releases
+  api_key:
+    secure: pU8Mgcdz3A0cCYto8GKRMKPDp4eu/koO/o2Eu9Xbv3sTIa0Of9ZOFvPlYKrvdMH5+KN2uj3ucQPDIqaNSvepuWvtCgx4TgLbtY027Xopt0Pr6ON31JDnd4EFXszAqqc/7kxFX/8jgqsVWN/bX63XtB9qSHqpdnm4fuH7ck9XpTJyKzfkWWb7U8noFrc+fZ+TlCxl/hDPf93eoPfNW/aeYK/r+6YVvb7SuFpyZcwVv7Ry+xMpYwD/587xv5+FgdN6NxqHnj6B5nJlrh8/qjxZGNGFthr7mBpaY4zIzdQrhP8IWk6WzlmtedgujQ3czQHglO46DNrSlUyy0WZgSN9hsPBbL63KKL/9Yb5aVBCebt4b3IqspFtBuuxAk1K+wCaBu9d02C31FQp9lhlwj5T3CDW0XZmlPgrbajerzWHOrCXKVpLUJUK211JpTlSwvTaMHdTGhxMJldHj+g8OsdkDbu/+AaMUS+3aPG7mRmhnKPG+WTokyN8MUBjxE2dRG8LlxsnwRLdUN8GQ6R7OfL3LjwqcGVAVHgVpFxvOgkr9HT3rhhF9bVPke2Qms4dgIkqYtTZmVjFr+wUcSnpE8g/eAZgGRE7DrFMtJvJm/naLXy5+ZPsdnwBRtLZFvCkwF6pISTu74gqziFqE6LmelA6Ua4Cmtnh7kf5ru+r3ckVaHFI=
+  file:
+    - handler.zip
+    - lastkeypair_linux_amd64
+    - lastkeypair_darwin_amd64
+    - lastkeypair_windows_amd64.exe
+  on:
+    tags: true
+    repo: glassechidna/lastkeypair
