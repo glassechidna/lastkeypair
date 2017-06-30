@@ -36,7 +36,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
-            Action: kms:Describe
+            Action: kms:DescribeKey
             Resource: "*"
           - Sid: KmsAuth
             Effect: Allow

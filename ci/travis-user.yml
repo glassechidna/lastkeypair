@@ -9,6 +9,9 @@ Parameters:
   LambdaStack:
     Type: String
     Default: lkp-lambda-test
+  LambdaRole:
+    Type: String
+    Default: lkp-lambda-test-LambdaRole-19I38JO49J7JM
 Resources:
   TravisUser:
     Type: AWS::IAM::User
@@ -30,6 +33,9 @@ Resources:
                   - cloudformation:DescribeStackEvents
                   - cloudformation:DescribeStacks
                 Resource: !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${LambdaStack}/*
+              - Effect: Allow
+                Action: iam:GetRole
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${LambdaRole}
 Outputs:
   UserName:
     Value: !Ref TravisUser
