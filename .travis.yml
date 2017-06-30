@@ -19,4 +19,4 @@ script:
   - ssh -R 19999:localhost:22
   - ci/e2e.bash
   - xxd out.log
-  - xxd ci/expected-output.log
+  - xxd ci/expected-output.txt
