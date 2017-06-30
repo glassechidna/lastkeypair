@@ -20,4 +20,3 @@ script:
   - ci/e2e.bash
   - xxd out.log
   - xxd ci/expected-output.log
-
