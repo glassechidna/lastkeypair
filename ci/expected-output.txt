@@ -1,7 +1,7 @@
 (main.PrintableCertFields) {
  Serial: (uint64) 0,
  CertType: (uint32) 1,
- KeyId: (string) (len=7) "asteele",
+ KeyId: (string) (len=40) "lkp-travis-user-TravisUser-1ILBFVUOPN36N",
  ValidPrincipals: ([]string) <nil>,
  ValidAfter: (uint64) 1498736443,
  ValidBefore: (uint64) 1498737643,
