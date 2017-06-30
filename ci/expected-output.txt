@@ -3,8 +3,6 @@
  CertType: (uint32) 1,
  KeyId: (string) (len=40) "lkp-travis-user-TravisUser-1ILBFVUOPN36N",
  ValidPrincipals: ([]string) <nil>,
- ValidAfter: (uint64) 1498736443,
- ValidBefore: (uint64) 1498737643,
  Permissions: (ssh.Permissions) {
   CriticalOptions: (map[string]string) {
   },
