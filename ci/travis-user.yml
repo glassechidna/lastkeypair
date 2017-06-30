@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  S3BucketName:
+    Type: String
+    Default: lkp-lambda-test
+  S3KeyName:
+    Type: String
+    Default: handler.zip
+  LambdaStack:
+    Type: String
+    Default: lkp-lambda-test
+Resources:
+  TravisUser:
+    Type: AWS::IAM::User
+    Properties:
+      Policies:
+        - PolicyName: user
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: !Sub arn:aws:s3:::${S3BucketName}/${S3KeyName}
+              - Effect: Allow
+                Action: cloudformation:UpdateStack
+                Resource: !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${LambdaStack}/*
+Outputs:
+  UserName:
+    Value: !Ref TravisUser
