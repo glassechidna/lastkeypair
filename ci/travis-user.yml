@@ -9,6 +9,9 @@ Parameters:
   LambdaStackArn:
     Type: String
     Default: arn:aws:cloudformation:ap-southeast-2:607481581596:stack/lkp-lambda-test
+  FunctionArn:
+    Type: String
+    Default: arn:aws:lambda:ap-southeast-2:607481581596:function:LastKeypair
   LambdaRoleArn:
     Type: String
     Default: arn:aws:iam::607481581596:role/lkp-lambda-test-LambdaRole-19I38JO49J7JM
@@ -28,6 +31,7 @@ Resources:
                 Action:
                   - s3:PutObject
                   - s3:GetObject
+                  - s3:GetObjectVersion
                 Resource: !Sub arn:aws:s3:::${S3BucketName}/${S3KeyName}
               - Effect: Allow
                 Action:
@@ -39,6 +43,12 @@ Resources:
               - Effect: Allow
                 Action: iam:GetRole
                 Resource: !Ref LambdaRoleArn
+              - Effect: Allow
+                Action:
+                  - lambda:UpdateFunctionCode
+                  - lambda:GetFunctionConfiguration
+                  - lambda:InvokeFunction
+                Resource: !Ref FunctionArn
               - Effect: Allow
                 Action:
                   - kms:DescribeKey # for cfn.yml stack updates
