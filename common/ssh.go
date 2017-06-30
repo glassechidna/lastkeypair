@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/pkg/errors"
-	"fmt"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"os/exec"
 	"syscall"
