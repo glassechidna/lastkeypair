@@ -27,5 +27,5 @@ docker run -it -v $(pwd):$(pwd) -w $(pwd) \
   rastasheep/ubuntu-sshd:16.04 \
   ./lastkeypair_linux_amd64 \
     ssh exec -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 travis@$CONTAINER_IP | tee out.log
-#go run main.go ssh exec -- -o StrictHostKeyChecking=no -p 2222 travis@$CONTAINER_IP | tee out.log
+
 diff out.log ci/expected-output.txt
