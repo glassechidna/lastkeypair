@@ -6,12 +6,15 @@ Parameters:
   S3KeyName:
     Type: String
     Default: handler.zip
-  LambdaStack:
+  LambdaStackArn:
     Type: String
-    Default: lkp-lambda-test
-  LambdaRole:
+    Default: arn:aws:cloudformation:ap-southeast-2:607481581596:stack/lkp-lambda-test
+  LambdaRoleArn:
     Type: String
-    Default: lkp-lambda-test-LambdaRole-19I38JO49J7JM
+    Default: arn:aws:iam::607481581596:role/lkp-lambda-test-LambdaRole-19I38JO49J7JM
+  KeyArn:
+    Type: String
+    Default: arn:aws:kms:ap-southeast-2:607481581596:key/d2157914-fb4d-4c39-ae3e-f5b35def0d21
 Resources:
   TravisUser:
     Type: AWS::IAM::User
@@ -32,10 +35,18 @@ Resources:
                   - cloudformation:CreateStack
                   - cloudformation:DescribeStackEvents
                   - cloudformation:DescribeStacks
-                Resource: !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${LambdaStack}/*
+                Resource: !Sub ${LambdaStackArn}/*
               - Effect: Allow
                 Action: iam:GetRole
-                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${LambdaRole}
+                Resource: !Ref LambdaRoleArn
+              - Effect: Allow
+                Action:
+                  - kms:DescribeKey # for cfn.yml stack updates
+                  - kms:Encrypt # to actually use this thing
+                Resource: !Ref KeyArn
+              - Effect: Allow
+                Action: sts:GetCallerIdentity
+                Resource: "*"
 Outputs:
   UserName:
     Value: !Ref TravisUser
