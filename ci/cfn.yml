@@ -36,7 +36,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
-            Action: kms:Describe
+            Action: kms:DescribeKey
             Resource: "*"
           - Sid: KmsAuth
             Effect: Allow
@@ -51,8 +51,8 @@ Resources:
                 kms:EncryptionContext:type: user
                 kms:EncryptionContext:from: "${aws:username}"
                 kms:EncryptionContext:account: "${kms:CallerAccount}"
-              Bool:
-                aws:MultiFactorAuthPresent: true
+#              Bool:
+#                aws:MultiFactorAuthPresent: true
           - Sid: KmsLambdaAuth
             Effect: Allow
             Principal:

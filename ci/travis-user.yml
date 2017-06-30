@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  S3BucketName:
+    Type: String
+    Default: lkp-lambda-test
+  S3KeyName:
+    Type: String
+    Default: handler.zip
+  LambdaStackArn:
+    Type: String
+    Default: arn:aws:cloudformation:ap-southeast-2:607481581596:stack/lkp-lambda-test
+  FunctionArn:
+    Type: String
+    Default: arn:aws:lambda:ap-southeast-2:607481581596:function:LastKeypair
+  LambdaRoleArn:
+    Type: String
+    Default: arn:aws:iam::607481581596:role/lkp-lambda-test-LambdaRole-19I38JO49J7JM
+  KeyArn:
+    Type: String
+    Default: arn:aws:kms:ap-southeast-2:607481581596:key/d2157914-fb4d-4c39-ae3e-f5b35def0d21
+Resources:
+  TravisUser:
+    Type: AWS::IAM::User
+    Properties:
+      Policies:
+        - PolicyName: user
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                Resource: !Sub arn:aws:s3:::${S3BucketName}/${S3KeyName}
+              - Effect: Allow
+                Action:
+                  - cloudformation:UpdateStack
+                  - cloudformation:CreateStack
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:DescribeStacks
+                Resource: !Sub ${LambdaStackArn}/*
+              - Effect: Allow
+                Action: iam:GetRole
+                Resource: !Ref LambdaRoleArn
+              - Effect: Allow
+                Action:
+                  - lambda:UpdateFunctionCode
+                  - lambda:GetFunctionConfiguration
+                  - lambda:InvokeFunction
+                Resource: !Ref FunctionArn
+              - Effect: Allow
+                Action:
+                  - kms:DescribeKey # for cfn.yml stack updates
+                  - kms:Encrypt # to actually use this thing
+                Resource: !Ref KeyArn
+              - Effect: Allow
+                Action: sts:GetCallerIdentity
+                Resource: "*"
+Outputs:
+  UserName:
+    Value: !Ref TravisUser

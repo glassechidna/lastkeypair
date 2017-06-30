@@ -7,15 +7,11 @@ go:
   - 1.x
 
 install:
-  - go get github.com/mitchellh/gox
-  - curl -sL -o upx.txz https://github.com/upx/upx/releases/download/v3.93/upx-3.93-amd64_linux.tar.xz
-  - tar -xvf upx.txz
-  - curl -sL -o glide.tgz https://github.com/Masterminds/glide/releases/download/v0.12.3/glide-v0.12.3-linux-amd64.tar.gz
-  - tar -xvf glide.tgz
+  - ci/setup_env.bash
   - linux-amd64/glide install
 
 script:
   - gox -arch="amd64" -os="windows linux darwin"
   - upx-3.93-amd64_linux/upx lastkeypair_{linux_amd64,windows_amd64.exe} # upx 3.93 creates buggy darwin exes, fixed in unreleased 3.94
   - make
-  - ls -lh
+  - ci/e2e.bash

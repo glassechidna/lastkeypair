@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/pkg/errors"
-	"fmt"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"os/exec"
 	"syscall"
@@ -48,7 +47,6 @@ func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId string, a
 	certPath := path.Join(AppDir(), "id_rsa-cert.pub")
 	ioutil.WriteFile(certPath, []byte(signed.SignedPublicKey), 0644)
 
-	fmt.Println(signed.SignedPublicKey)
 	lkpArgs := []string{
 		"ssh",
 		"-o",
