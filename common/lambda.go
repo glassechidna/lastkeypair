@@ -119,7 +119,7 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 		return nil, errors.Wrap(err, "creating aws session")
 	}
 
-	if !ValidateToken(sess, req.Token) {
+	if !ValidateToken(sess, req.Token, config.KeyId) {
 		return nil, errors.New("invalid token")
 	}
 

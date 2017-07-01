@@ -148,7 +148,7 @@ func CreateToken(sess *session.Session, params TokenParams) Token {
 	return Token{Params: params, Signature: blob}
 }
 
-func ValidateToken(sess *session.Session, token Token) bool {
+func ValidateToken(sess *session.Session, token Token, expectedKeyId string) bool {
 	context := token.Params.ToKmsContext()
 
 	input := &kms.DecryptInput{
@@ -162,7 +162,12 @@ func ValidateToken(sess *session.Session, token Token) bool {
 		log.Panicf("Decryption error: %s", err.Error())
 	}
 
-	if token.Params.KeyId != *response.KeyId {
+	/* We verify that the encryption key used is the one that we expected it to be.
+	   This is very important, as an attacker could submit ciphertext encrypted with
+	   a key they control that grants our Lambda permission to decrypt. Perhaps it
+	   would be worth implementing some kind of alert here?
+	 */
+	if expectedKeyId != *response.KeyId {
 		log.Panicf("Mismatching KMS key ids: %s and %s", token.Params.KeyId, *response.KeyId)
 	}
 

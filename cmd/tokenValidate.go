@@ -42,8 +42,7 @@ to quickly create a Cobra application.`,
 			Signature: rawSig,
 		}
 
-
-		valid := common.ValidateToken(sess, token)
+		valid := common.ValidateToken(sess, token, key)
 		fmt.Printf("token valid: %+v\n", valid)
 	},
 }
