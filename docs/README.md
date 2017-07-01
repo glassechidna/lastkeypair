@@ -29,6 +29,9 @@ certificates, AWS Lambda and AWS KMS.
 ## Setup
 
 
+## How it works
+
+![lastkeypair-sequence-diagram](sequence-diagram.png)
 
 ## Alternatives
 
