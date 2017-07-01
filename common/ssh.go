@@ -51,8 +51,6 @@ func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId string, a
 		"ssh",
 		"-o",
 		"IdentityFile=~/.lkp/id_rsa",
-		"-o",
-		"CertificateFile=~/.lkp/id_rsa-cert.pub",
 	}
 
 	args = append(lkpArgs, args...)
