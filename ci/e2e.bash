@@ -9,7 +9,7 @@ S3_KEY=handler.zip
 aws s3 cp handler.zip s3://$S3_BUCKET/$S3_KEY
 S3_OBJVER=$(aws s3api head-object --bucket $S3_BUCKET --key $S3_KEY --query VersionId --output text)
 
-./stackit up \
+./dl/stackit up \
   --stack-name lkp-lambda-test \
   --template ci/cfn.yml \
   --previous-param-value PstoreCAKeyBytesName \
