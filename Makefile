@@ -2,12 +2,22 @@ HANDLER ?= handler
 PACKAGE ?= $(HANDLER)
 GOPATH  ?= $(HOME)/go
 
-all: build pack perm
+VERSION = $(shell git describe --tags)
+DATE = $(shell date +%FT%T%z)
+GO_LDFLAGS := "-X github.com/glassechidna/lastkeypair/cmd.ApplicationVersion=$(VERSION) -X github.com/glassechidna/lastkeypair/cmd.ApplicationBuildDate=$(DATE)"
+
+all: linux build pack perm
 
 .PHONY: all
 
+linux:
+	@gox -arch="amd64" -os="linux" -ldflags=$(GO_LDFLAGS)
+
+otherplats:
+	@gox -arch="amd64" -os="windows darwin" -ldflags=$(GO_LDFLAGS)
+
 build:
-	@go build -buildmode=plugin -ldflags='-w -s' -o $(HANDLER).so
+	@go build -buildmode=plugin -ldflags=$(GO_LDFLAGS) -o $(HANDLER).so
 
 .PHONY: build
 

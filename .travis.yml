@@ -17,12 +17,12 @@ install:
   - linux-amd64/glide install
 
 script:
-  - gox -arch="amd64" -os="linux"
   - make
   - ci/e2e.bash
+  - ./lastkeypair_linux_amd64 version
 
 before_deploy:
-  - gox -arch="amd64" -os="windows darwin"
+  - make otherplats
   - upx-3.93-amd64_linux/upx lastkeypair_{linux_amd64,windows_amd64.exe} # upx 3.93 creates buggy darwin exes, fixed in unreleased 3.94
 
 deploy:
