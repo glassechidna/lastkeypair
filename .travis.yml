@@ -1,10 +1,8 @@
 language: go
 
-services:
-  - docker
 
 go:
-  - 1.x
+  - 1.8.3
 
 install:
   - ci/setup_env.bash

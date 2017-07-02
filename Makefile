@@ -2,18 +2,6 @@ HANDLER ?= handler
 PACKAGE ?= $(HANDLER)
 GOPATH  ?= $(HOME)/go
 
-docker:
-	@docker run --rm                                                             \
-	  -e HANDLER=$(HANDLER)                                                      \
-	  -e PACKAGE=$(PACKAGE)                                                      \
-	  -e GOPATH=$(GOPATH)                                                        \
-	  -v $(CURDIR):$(CURDIR)                                                     \
-	  $(foreach GP,$(subst :, ,$(GOPATH)),-v $(GP):$(GP))                        \
-	  -w $(CURDIR)                                                               \
-	  eawsy/aws-lambda-go-shim:latest make all
-
-.PHONY: docker
-
 all: build pack perm
 
 .PHONY: all
@@ -24,7 +12,7 @@ build:
 .PHONY: build
 
 pack:
-	@pack $(HANDLER) $(HANDLER).so $(PACKAGE).zip
+	@bash ci/shim/pack $(HANDLER) $(HANDLER).so $(PACKAGE).zip
 
 .PHONY: pack
 
