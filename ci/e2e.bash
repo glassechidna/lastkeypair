@@ -1,7 +1,8 @@
 #!/bin/bash
-set -euxo pipefail
 
 export PATH=$PATH:$HOME/.local/bin # for awscli
+
+set -euxo pipefail
 
 S3_BUCKET=lkp-lambda-test
 S3_KEY=handler.zip
