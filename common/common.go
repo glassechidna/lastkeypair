@@ -15,7 +15,11 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"crypto/rand"
+	"github.com/aws/aws-sdk-go/aws/request"
 )
+
+var ApplicationVersion string
+var ApplicationBuildDate string
 
 func SignSsh(caKeyBytes, userPubkeyBytes []byte, durationSecs int64, keyId string, principals []string) (*string, error) {
 	signer, err := ssh.ParsePrivateKey(caKeyBytes)
@@ -79,6 +83,12 @@ func AwsSession(profile, region string) *session.Session {
 
 	sess, _ := session.NewSessionWithOptions(sessOpts)
 	config := aws.NewConfig()
+
+	userAgentHandler := request.NamedHandler{
+		Name: "LastKeypair.UserAgentHandler",
+		Fn:   request.MakeAddToUserAgentHandler("LastKeypair", ApplicationVersion),
+	}
+	sess.Handlers.Build.PushBackNamed(userAgentHandler)
 
 	if len(region) > 0 {
 		config.Region = aws.String(region)
