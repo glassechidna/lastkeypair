@@ -1,5 +1,7 @@
 # `lastkeypair`
 
+[![Build Status](https://travis-ci.org/glassechidna/lastkeypair.svg?branch=master)](https://travis-ci.org/glassechidna/lastkeypair)
+
 **NOTE: README is a work-in-progress**
 
 ## Preamble
