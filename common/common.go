@@ -105,18 +105,24 @@ type PlaintextPayload struct {
 
 type TokenParams struct {
 	KeyId string
-	From string
+	FromId string
 	FromAccount string
+	FromName string
 	To string
 	Type string
 }
 
 func (params *TokenParams) ToKmsContext() map[string]*string {
 	context := make(map[string]*string)
-	context["from"] = &params.From
+	context["fromId"] = &params.FromId
+	context["fromAccount"] = &params.FromAccount
 	context["to"] = &params.To
 	context["type"] = &params.Type
-	context["account"] = &params.FromAccount
+
+	if len(params.FromName) > 0 {
+		context["fromName"] = &params.FromName
+	}
+
 	return context
 }
 
@@ -197,14 +203,40 @@ func ValidateToken(sess *session.Session, token Token, expectedKeyId string) boo
 	return true
 }
 
-func CallerIdentityUser(client *sts.STS) (*string, *string, error) {
+type StsIdentity struct {
+	AccountId string
+	UserId string
+	Username string
+	Type string
+}
+
+func CallerIdentityUser(sess *session.Session) (*StsIdentity, error) {
+	client := sts.New(sess)
 	response, err := client.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 
 	if err == nil {
 		arn := *response.Arn
-		parts := strings.SplitN(arn, "/", 2)
-		return response.Account, &parts[1], nil
+		parts := strings.SplitN(arn, ":", 6)
+
+		if strings.HasPrefix(parts[5], "user/") {
+			name := parts[5][5:]
+			return &StsIdentity{
+				AccountId: *response.Account,
+				UserId: *response.UserId,
+				Username: name,
+				Type: "User",
+			}, nil
+		} else if strings.HasPrefix(parts[5], "assumed-role/") {
+			return &StsIdentity{
+				AccountId: *response.Account,
+				UserId: *response.UserId,
+				Username: "",
+				Type: "AssumedRole",
+			}, nil
+		} else {
+			return nil, errors.New("unsupported IAM identity type")
+		}
 	} else {
-		return nil, nil, err
+		return nil, err
 	}
 }

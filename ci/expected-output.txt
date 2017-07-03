@@ -1,7 +1,7 @@
 (main.PrintableCertFields) {
  Serial: (uint64) 0,
  CertType: (uint32) 1,
- KeyId: (string) (len=40) "lkp-travis-user-TravisUser-1ILBFVUOPN36N",
+ KeyId: (string) (len=62) "lkp-travis-user-TravisUser-1ILBFVUOPN36N-AIDAJZF7RF5JNJR5CBDIE",
  ValidPrincipals: ([]string) <nil>,
  Permissions: (ssh.Permissions) {
   CriticalOptions: (map[string]string) {

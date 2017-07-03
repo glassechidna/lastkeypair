@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/aws/aws-sdk-go/aws"
 	"encoding/base64"
+	"fmt"
 )
 
 type UserCertReqJson struct {
@@ -123,7 +124,12 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 		return nil, errors.New("invalid token")
 	}
 
-	signed, err := SignSsh(config.CaKeyBytes, []byte(req.PublicKey), config.ValidityDuration, req.Token.Params.From, []string{})
+	identity := req.Token.Params.FromId
+	if name := req.Token.Params.FromName; len(name) > 0 {
+		identity = fmt.Sprintf("%s-%s", name, identity)
+	}
+
+	signed, err := SignSsh(config.CaKeyBytes, []byte(req.PublicKey), config.ValidityDuration, identity, []string{})
 	if err != nil {
 		return nil, errors.Wrap(err, "signing ssh key")
 	}

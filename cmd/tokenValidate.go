@@ -23,7 +23,8 @@ to quickly create a Cobra application.`,
 		sess := common.AwsSession(profile, region)
 
 		key := viper.GetString("key-id")
-		from := viper.GetString("from")
+		fromName := viper.GetString("from-name")
+		fromId := viper.GetString("from-id")
 		fromAcct := viper.GetString("from-account")
 		to := viper.GetString("to")
 		typ := viper.GetString("type")
@@ -34,7 +35,8 @@ to quickly create a Cobra application.`,
 		token := common.Token{
 			Params: common.TokenParams{
 				KeyId: key,
-				From: from,
+				FromId: fromId,
+				FromName: fromName,
 				FromAccount: fromAcct,
 				To: to,
 				Type: typ,
@@ -54,7 +56,8 @@ func init() {
 	tokenValidateCmd.PersistentFlags().String("region", "", "")
 
 	tokenValidateCmd.PersistentFlags().String("key-id", "", "")
-	tokenValidateCmd.PersistentFlags().String("from", "", "")
+	tokenValidateCmd.PersistentFlags().String("from-id", "", "")
+	tokenValidateCmd.PersistentFlags().String("from-name", "", "")
 	tokenValidateCmd.PersistentFlags().String("from-account", "", "")
 	tokenValidateCmd.PersistentFlags().String("to", "", "")
 	tokenValidateCmd.PersistentFlags().String("type", "user", "")

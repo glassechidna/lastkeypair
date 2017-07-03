@@ -16,6 +16,7 @@ S3_OBJVER=$(aws s3api head-object --bucket $S3_BUCKET --key $S3_KEY --query Vers
   --previous-param-value PstoreCAKeyBytesName \
   --previous-param-value S3Bucket \
   --previous-param-value S3Key \
+  --previous-param-value AllowedAwsAccounts \
   --param-value S3ObjectVersion=$S3_OBJVER
 
 ./dl/sshello &

@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/pkg/errors"
-	"github.com/aws/aws-sdk-go/service/sts"
 	"os/exec"
 	"syscall"
 	"os"
@@ -18,18 +17,18 @@ import (
 func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId string, args []string) {
 	kp, _ := MyKeyPair()
 
-	stsClient := sts.New(sess)
-	stsAcct, stsFrom, err := CallerIdentityUser(stsClient)
+	ident, err := CallerIdentityUser(sess)
 	if err != nil {
 		log.Panicf("error getting aws user identity: %+v\n", err)
 	}
 
 	token := CreateToken(sess, TokenParams{
 		KeyId: kmsKeyId,
-		From: *stsFrom,
-		FromAccount: *stsAcct,
+		FromId: ident.UserId,
+		FromAccount: ident.AccountId,
+		FromName: ident.Username,
 		To: funcIdentity,
-		Type: "user",
+		Type: ident.Type,
 	})
 
 	req := UserCertReqJson{

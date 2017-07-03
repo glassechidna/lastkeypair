@@ -17,6 +17,13 @@ Parameters:
     Type: String
   S3ObjectVersion:
     Type: String
+  MFARequired:
+    Type: String
+    Default: false
+  AllowedAwsAccounts:
+    Type: String
+Conditions:
+  MFARequired: !Equals [!Ref MFARequired, "true"]
 Resources:
   Key:
     Type: AWS::KMS::Key
@@ -35,22 +42,23 @@ Resources:
           - Sid: KmsDescribe
             Effect: Allow
             Principal:
-              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+              AWS: !Split [",", !Ref AllowedAwsAccounts]
             Action: kms:DescribeKey
             Resource: "*"
-          - Sid: KmsAuth
+          - Sid: AllowIAMUserEncrypt
             Effect: Allow
             Principal:
-              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+              AWS: !Split [",", !Ref AllowedAwsAccounts]
             Action: kms:Encrypt
             Resource: "*"
             Condition:
               StringEquals:
-                kms:EncryptionContext:to:
-                  - !Ref FunctionKmsAuthName
-                kms:EncryptionContext:type: user
-                kms:EncryptionContext:from: "${aws:username}"
-                kms:EncryptionContext:account: "${kms:CallerAccount}"
+                kms:EncryptionContext:to: !Ref FunctionKmsAuthName
+                kms:EncryptionContext:type: "${aws:principaltype}"
+                kms:EncryptionContext:fromId: "${aws:userid}"
+                kms:EncryptionContext:fromAccount: "${kms:CallerAccount}"
+              StringEqualsIfExists:
+                aws:username: "${kms:EncryptionContext:fromName}"
 #              Bool:
 #                aws:MultiFactorAuthPresent: true
           - Sid: KmsLambdaAuth
