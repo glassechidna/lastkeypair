@@ -14,12 +14,21 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"encoding/base64"
 	"fmt"
+	"log"
+	"golang.org/x/crypto/ssh"
 )
 
 type UserCertReqJson struct {
 	EventType string
 	Token Token
 	InstanceId string
+	SshUsername string
+	PublicKey string
+}
+
+type HostCertReqJson struct {
+	EventType string
+	Token Token
 	PublicKey string
 }
 
@@ -34,6 +43,10 @@ type PstoreKeyBytesProvider struct {
 type UserCertRespJson struct {
 	SignedPublicKey string
 	Expiry int64
+}
+
+type HostCertRespJson struct {
+	SignedHostPublicKey string
 }
 
 type LambdaConfig struct {
@@ -85,12 +98,6 @@ func getCaKeyBytes() ([]byte, error) {
 }
 
 func LambdaHandle(evt json.RawMessage, ctx *runtime.Context) (interface{}, error) {
-	req := UserCertReqJson{}
-	err := json.Unmarshal(evt, &req)
-	if err != nil {
-		return nil, errors.Wrap(err, "unmarshalling input")
-	}
-
 	caKeyBytes, err := getCaKeyBytes()
 	if err != nil {
 		return nil, err
@@ -105,11 +112,30 @@ func LambdaHandle(evt json.RawMessage, ctx *runtime.Context) (interface{}, error
 		ValidityDuration: validity,
 	}
 
-	resp, err := DoUserCertReq(req, config)
-	return resp, err
+	raw := make(map[string]string)
+	json.Unmarshal(evt, &raw)
+
+	switch raw["EventType"] {
+	case "UserCertReq":
+		req := UserCertReqJson{}
+		err := json.Unmarshal(evt, &req)
+		if err != nil {
+			return nil, errors.Wrap(err, "unmarshalling input")
+		}
+		return DoUserCertReq(req, config)
+	case "HostCertReq":
+		req := HostCertReqJson{}
+		err := json.Unmarshal(evt, &req)
+		if err != nil {
+			return nil, errors.Wrap(err, "unmarshalling input")
+		}
+		return DoHostCertReq(req, config)
+	default:
+		return nil, errors.New("unexpected event type")
+	}
 }
 
-func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson, error) {
+func LambdaAwsSession() *session.Session {
 	sessOpts := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
@@ -117,8 +143,33 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 
 	sess, err := session.NewSessionWithOptions(sessOpts)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating aws session")
+		log.Panicf("couldn't create aws session")
 	}
+
+	return sess
+}
+
+func DoHostCertReq(req HostCertReqJson, config LambdaConfig) (*HostCertRespJson, error) {
+	sess := LambdaAwsSession()
+
+	if !ValidateToken(sess, req.Token, config.KeyId) {
+		return nil, errors.New("invalid token")
+	}
+
+	signed, err := SignHostSsh(config.CaKeyBytes, []byte(req.PublicKey), ssh.CertTimeInfinity, req.Token.Params.HostInstanceArn)
+	if err != nil {
+		return nil, errors.Wrap(err, "signing ssh key")
+	}
+
+	resp := HostCertRespJson{
+		SignedHostPublicKey: *signed,
+	}
+
+	return &resp, nil
+}
+
+func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson, error) {
+	sess := LambdaAwsSession()
 
 	if !ValidateToken(sess, req.Token, config.KeyId) {
 		return nil, errors.New("invalid token")
@@ -129,7 +180,8 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 		identity = fmt.Sprintf("%s-%s", name, identity)
 	}
 
-	signed, err := SignSsh(config.CaKeyBytes, []byte(req.PublicKey), config.ValidityDuration, identity, []string{})
+	principals := []string{req.SshUsername}
+	signed, err := SignSsh(config.CaKeyBytes, []byte(req.PublicKey), config.ValidityDuration, identity, principals)
 	if err != nil {
 		return nil, errors.Wrap(err, "signing ssh key")
 	}

@@ -14,7 +14,7 @@ import (
 	"os"
 )
 
-func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId string, args []string) {
+func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, username string, args []string) {
 	kp, _ := MyKeyPair()
 
 	ident, err := CallerIdentityUser(sess)
@@ -35,6 +35,7 @@ func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId string, a
 		EventType: "UserCertReq",
 		Token: token,
 		InstanceId: "",
+		SshUsername: username,
 		PublicKey: string(kp.PublicKey),
 	}
 

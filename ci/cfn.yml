@@ -60,6 +60,8 @@ Resources:
               StringEqualsIfExists:
                 aws:username: "${kms:EncryptionContext:fromName}"
                 kms:EncryptionContext:fromName: "${aws:username}"
+                ec2:SourceInstanceARN: "${kms:EncryptionContext:hostInstanceArn}"
+                kms:EncryptionContext:hostInstanceArn: "${ec2:SourceInstanceARN}"
 #              Bool:
 #                aws:MultiFactorAuthPresent: true
           - Sid: KmsLambdaAuth
