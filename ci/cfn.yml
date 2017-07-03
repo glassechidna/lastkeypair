@@ -59,6 +59,7 @@ Resources:
                 kms:EncryptionContext:fromAccount: "${kms:CallerAccount}"
               StringEqualsIfExists:
                 aws:username: "${kms:EncryptionContext:fromName}"
+                kms:EncryptionContext:fromName: "${aws:username}"
 #              Bool:
 #                aws:MultiFactorAuthPresent: true
           - Sid: KmsLambdaAuth
