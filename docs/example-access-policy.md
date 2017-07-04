@@ -33,6 +33,7 @@ interface LkpContext {
     voucherAccount?: string; // in two-person authorisations, these fields mirror 
     voucherId?: string;      // the 'from' fields, albeit for the user doing the "vouching" 
     voucherName?: string;
+    voucherInstanceArn?: string;
 }
 
 // ec2tags() returns a string->string map of all ec2 tags for a given instance ARN
