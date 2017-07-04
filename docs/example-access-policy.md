@@ -45,6 +45,10 @@ function ec2tags(instanceArn: string): KeyValMap;
 function userGroups(awsAccountId: string, iamUsername: string): [string];
 ```
 
+## Example
+
+This is a somewhat exhaustive example of the sorts of policies you might enact.
+
 ```javascript
 function validate(context) {
     // we allow multiple a third-party account ssh access and we don't want them to be
