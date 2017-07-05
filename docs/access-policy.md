@@ -15,11 +15,11 @@ Javascript.
 ## Usage
 
 The Javascript environment is provided by [Duktape](http://duktape.org/). LKP
-will execute a `validate()` function with a `context` object and expect a boolean
-response - `true` if the request is accepted, `false` if it should be denied.
+will execute a `validate()` function with a `context` object and expect an object
+response.
 
-Here we will use Typescript notation to describe the context object and functions
-available to you in the JS environment.
+Here we will use Typescript notation to describe the context object, response object
+and functions available to you in the JS environment.
 
 ```typescript
 interface LkpContext {
@@ -34,6 +34,10 @@ interface LkpContext {
     voucherId?: string;      // the 'from' fields, albeit for the user doing the "vouching" 
     voucherName?: string;
     voucherInstanceArn?: string;
+}
+
+interface LkpValidateResponse {
+    authorized: boolean;
 }
 
 // ec2tags() returns a string->string map of all ec2 tags for a given instance ARN
@@ -59,15 +63,16 @@ function validate(context) {
     
     var now = new Date();
     var hour = now.getUTCHours();
+    var authorized = { authorized: true };
 
-    if (isMainAccount && context.fromName === 'aidan.steele@glassechidna.com.au') return true; // aidan is all powerful
+    if (isMainAccount && context.fromName === 'aidan.steele@glassechidna.com.au') return authorized; // aidan is all powerful
 
     if (isMainAccount && context.fromName === 'benjamin.dobell@glassechidna.com.au') {
-        if (hour >= 9 && hour < 17) return true; // ben usually only has access during work hours
+        if (hour >= 9 && hour < 17) return authorized; // ben usually only has access during work hours
     }
     
     if (context.fromAccount === '01234567890') { // aws account id of 3rd-party support provider
-        return hour < 9 || hour >= 17; // our trusted partner is allowed in outside of work hours
+        if (hour < 9 || hour >= 17) return authorized; // our trusted partner is allowed in outside of work hours
     }
 
     var rolePrefix = "AROAIIWP2XR7EN6EXAMPLE:";
@@ -75,19 +80,19 @@ function validate(context) {
         var roleSessionName = context.fromId.substr(rolePrefix.length);
         // dan isn't an IAM user (he uses SAML to log into AWS) so we check the role session
         // name from his sts:AssumeRole call
-        if (roleSessionName === 'daniel.whyte@glassechidna.com') return true;
+        if (roleSessionName === 'daniel.whyte@glassechidna.com') return authorized;
     }
 
     var partyHost = 'arn:aws:ec2:ap-southeast-2:9876543210:instance/i-0123abcd';
-    if (context.instanceArn === partyHost) return true; // we'll let anyone on our party box
+    if (context.instanceArn === partyHost) return authorized; // we'll let anyone on our party box
 
     var devRegion = 'arn:aws:ec2:us-east-1:9876543210';
-    if (context.instanceArn.indexOf(devRegion) === 0) return true; // the dev region is a free-for-all
+    if (context.instanceArn.indexOf(devRegion) === 0) return authorized; // the dev region is a free-for-all
 
     var uatRegion = 'arn:aws:ec2:us-east-2:9876543210';
     if (context.instanceArn.indexOf(uatRegion) === 0) {
         var groups = userGroups(context.fromAccount, context.fromId);
-        if (groups.indexOf("Developers") >= 0) return true; // the uat region is only open to devs
+        if (groups.indexOf("Developers") >= 0) return authorized; // the uat region is only open to devs
     }
 
     if (ec2tags(context.instanceArn).clearanceLevel === 'super-secure') {
@@ -100,9 +105,9 @@ function validate(context) {
             context.voucherAccount === '9876543210' &&
             context.voucherName === 'aidan.steele@glassechidna.com.au' &&
             context.voucherInstanceArn === context.instanceArn // aidan only vouched for _this_ machine, not all super-secure machines!
-        ) return true;
+        ) return authorized;
     }
 
-    return false;
+    return { authorized: false };
 }
 ```
