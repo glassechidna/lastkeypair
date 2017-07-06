@@ -110,9 +110,16 @@ type TokenParams struct {
 	To string
 	Type string
 
-	// optional fields
+	// optional fields below this comment
 	FromName string
-	HostInstanceArn string
+
+	// the reason we have both these fields (rather than overloading one "InstanceArn" field)
+	// is because we want to specify a KMS key policy that HostInstanceArn _MUST_ match
+	// the ec2:SourceInstanceARN if it exists. if we didn't do this, then anyone _not_ on
+	// an instance could request a host cert.
+	HostInstanceArn   string // this field is for when an instance is requesting a host cert
+	RemoteInstanceArn string // this field is for when a user is requesting a user cert for a specific host
+
 }
 
 func (params *TokenParams) ToKmsContext() map[string]*string {
@@ -128,6 +135,10 @@ func (params *TokenParams) ToKmsContext() map[string]*string {
 
 	if len(params.HostInstanceArn) > 0 {
 		context["hostInstanceArn"] = &params.HostInstanceArn
+	}
+
+	if len(params.RemoteInstanceArn) > 0 {
+		context["remoteInstanceArn"] = &params.RemoteInstanceArn
 	}
 
 	return context

@@ -28,7 +28,7 @@ func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, instance
 		FromName: ident.Username,
 		To: funcIdentity,
 		Type: ident.Type,
-		HostInstanceArn: instanceArn,
+		RemoteInstanceArn: instanceArn,
 	}, kmsKeyId)
 
 	req := UserCertReqJson{

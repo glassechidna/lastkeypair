@@ -194,7 +194,7 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 		identity = fmt.Sprintf("%s-%s", name, identity)
 	}
 
-	instanceArn := req.Token.Params.HostInstanceArn
+	instanceArn := req.Token.Params.RemoteInstanceArn
 	if len(instanceArn) == 0 {
 		return nil, errors.New("target instance arn must be specified")
 	}
