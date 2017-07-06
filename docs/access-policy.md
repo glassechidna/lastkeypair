@@ -28,7 +28,7 @@ interface LkpContext {
     fromAccount: string; // AWS numeric account ID containing user
     to: "LastKeypair";
     type: "User" | "AssumedRole" | "FederatedUser"; // type of user in 'from' fields
-    instanceArn: string; // instance ARN that user is requesting access to
+    remoteInstanceArn: string; // instance ARN that user is requesting access to
     
     voucherAccount?: string; // in two-person authorisations, these fields mirror 
     voucherId?: string;      // the 'from' fields, albeit for the user doing the "vouching" 
@@ -44,7 +44,7 @@ interface LkpValidateResponse {
 interface KeyValMap {
     [key: string]: string;
 }
-function ec2tags(instanceArn: string): KeyValMap;
+function ec2tags(remoteInstanceArn: string): KeyValMap;
 
 // userGroups() returns an array of group names that the given user belongs to
 function userGroups(awsAccountId: string, iamUsername: string): [string];
@@ -84,18 +84,18 @@ function validate(context) {
     }
 
     var partyHost = 'arn:aws:ec2:ap-southeast-2:9876543210:instance/i-0123abcd';
-    if (context.instanceArn === partyHost) return authorized; // we'll let anyone on our party box
+    if (context.remoteInstanceArn === partyHost) return authorized; // we'll let anyone on our party box
 
     var devRegion = 'arn:aws:ec2:us-east-1:9876543210';
-    if (context.instanceArn.indexOf(devRegion) === 0) return authorized; // the dev region is a free-for-all
+    if (context.remoteInstanceArn.indexOf(devRegion) === 0) return authorized; // the dev region is a free-for-all
 
     var uatRegion = 'arn:aws:ec2:us-east-2:9876543210';
-    if (context.instanceArn.indexOf(uatRegion) === 0) {
+    if (context.remoteInstanceArn.indexOf(uatRegion) === 0) {
         var groups = userGroups(context.fromAccount, context.fromId);
         if (groups.indexOf("Developers") >= 0) return authorized; // the uat region is only open to devs
     }
 
-    if (ec2tags(context.instanceArn).clearanceLevel === 'super-secure') {
+    if (ec2tags(context.remoteInstanceArn).clearanceLevel === 'super-secure') {
         // some of our instances have a clearanceLevel=super-secure tag on them. only ben is allowed
         // to log into these machines, but only if aidan has vouched for him (sent him an approval
         // token over slack, email, etc)
@@ -104,7 +104,7 @@ function validate(context) {
             context.fromName === 'benjamin.dobell@glassechidna.com.au' &&
             context.voucherAccount === '9876543210' &&
             context.voucherName === 'aidan.steele@glassechidna.com.au' &&
-            context.voucherInstanceArn === context.instanceArn // aidan only vouched for _this_ machine, not all super-secure machines!
+            context.voucherInstanceArn === context.remoteInstanceArn // aidan only vouched for _this_ machine, not all super-secure machines!
         ) return authorized;
     }
 
