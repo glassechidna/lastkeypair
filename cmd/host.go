@@ -31,18 +31,19 @@ to quickly create a Cobra application.`,
 		signedHostKeyPath, _ := cmd.PersistentFlags().GetString("signed-host-key-path")
 		caPubkeyPath, _ := cmd.PersistentFlags().GetString("cert-authority-path")
 		sshdConfigPath, _ := cmd.PersistentFlags().GetString("sshd-config-path")
+		authorizedPrincipalsPath, _ := cmd.PersistentFlags().GetString("authorized-principals-path")
 		functionName, _ := cmd.PersistentFlags().GetString("lambda-name")
 		kmsKeyId, _ := cmd.PersistentFlags().GetString("kms-key")
 		funcIdentity, _ := cmd.PersistentFlags().GetString("func-identity")
 
-		err := doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, functionName, kmsKeyId, funcIdentity)
+		err := doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId, funcIdentity)
 		if err != nil {
 			log.Panicf("err: %s\n", err.Error())
 		}
 	},
 }
 
-func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, functionName, kmsKeyId, funcIdentity string) error {
+func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId, funcIdentity string) error {
 	hostKeyBytes, err := ioutil.ReadFile(hostKeyPath)
 	if err != nil {
 		return errors.Wrap(err, "reading ssh host key")
@@ -85,10 +86,18 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, function
 		return errors.Wrap(err, "writing ca pubkey to filesystem")
 	}
 
+	authorizedPrincipalsBytes := []byte(fmt.Sprintf("%s\n", instanceArn))
+
+	err = ioutil.WriteFile(authorizedPrincipalsPath, authorizedPrincipalsBytes, 0444)
+	if err != nil {
+		return errors.Wrap(err, "writing ca pubkey to filesystem")
+	}
+
 	err = appendToFile(sshdConfigPath, fmt.Sprintf(`
 HostCertificate %s
 TrustedUserCAKeys %s
-`, signedHostKeyPath, caPubkeyPath))
+AuthorizedPrincipalsFile %s
+`, signedHostKeyPath, caPubkeyPath, authorizedPrincipalsPath))
 	if err != nil {
 		return errors.Wrap(err, "appending to sshd config")
 	}
@@ -175,6 +184,7 @@ func init() {
 	hostCmd.PersistentFlags().String("host-key-path", "/etc/ssh/ssh_host_rsa_key.pub", "")
 	hostCmd.PersistentFlags().String("signed-host-key-path", "/etc/ssh/ssh_host_rsa_key-cert.pub", "")
 	hostCmd.PersistentFlags().String("cert-authority-path", "/etc/ssh/cert_authority.pub", "")
+	hostCmd.PersistentFlags().String("authorized-principals-path", "/etc/ssh/authorized_principals", "")
 	hostCmd.PersistentFlags().String("sshd-config-path", "/etc/ssh/sshd_config", "")
 	hostCmd.PersistentFlags().String("lambda-name", "LastKeypair", "")
 	hostCmd.PersistentFlags().String("func-identity", "LastKeypair", "")
