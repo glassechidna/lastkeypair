@@ -34,7 +34,6 @@ func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, username
 	req := UserCertReqJson{
 		EventType: "UserCertReq",
 		Token: token,
-		InstanceId: "",
 		SshUsername: username,
 		PublicKey: string(kp.PublicKey),
 	}

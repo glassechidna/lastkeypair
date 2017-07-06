@@ -21,7 +21,6 @@ import (
 type UserCertReqJson struct {
 	EventType string
 	Token Token
-	InstanceId string
 	SshUsername string
 	PublicKey string
 }
