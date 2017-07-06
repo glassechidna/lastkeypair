@@ -3,7 +3,7 @@
  CertType: (uint32) 1,
  KeyId: (string) (len=62) "lkp-travis-user-TravisUser-1ILBFVUOPN36N-AIDAJZF7RF5JNJR5CBDIE",
  ValidPrincipals: ([]string) (len=1 cap=1) {
-  (string) (len=8) "ec2-user"
+  (string) (len=6) "abcdef"
  },
  Permissions: (ssh.Permissions) {
   CriticalOptions: (map[string]string) {

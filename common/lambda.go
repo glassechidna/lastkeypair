@@ -194,7 +194,12 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 		identity = fmt.Sprintf("%s-%s", name, identity)
 	}
 
-	principals := []string{req.SshUsername}
+	instanceArn := req.Token.Params.HostInstanceArn
+	if len(instanceArn) == 0 {
+		return nil, errors.New("target instance arn must be specified")
+	}
+
+	principals := []string{instanceArn}
 	signed, err := SignSsh(
 		config.CaKeyBytes,
 		[]byte(req.PublicKey),

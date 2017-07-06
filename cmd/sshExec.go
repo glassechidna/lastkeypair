@@ -22,9 +22,10 @@ to quickly create a Cobra application.`,
 		lambdaFunc, _ := cmd.PersistentFlags().GetString("lambda-func")
 		kmsKeyId, _ := cmd.PersistentFlags().GetString("kms-key")
 		funcIdentity, _ := cmd.PersistentFlags().GetString("func-identity")
+		instanceArn, _ := cmd.PersistentFlags().GetString("instance-arn")
 		username, _ := cmd.PersistentFlags().GetString("ssh-username")
 
-		common.SshExec(sess, lambdaFunc, funcIdentity, kmsKeyId, username, args)
+		common.SshExec(sess, lambdaFunc, funcIdentity, kmsKeyId, instanceArn, username, args)
 	},
 }
 
@@ -34,5 +35,6 @@ func init() {
 	sshExecCmd.PersistentFlags().String("lambda-func", "LastKeypair", "Function name or ARN")
 	sshExecCmd.PersistentFlags().String("kms-key", "alias/LastKeypair", "ID, ARN or alias of KMS key for auth to CA")
 	sshExecCmd.PersistentFlags().String("func-identity", "LastKeypair", "")
+	sshExecCmd.PersistentFlags().String("instance-arn", "", "")
 	sshExecCmd.PersistentFlags().String("ssh-username", "ec2-user", "Username that you wish to SSH in with")
 }
