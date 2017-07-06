@@ -156,7 +156,22 @@ func DoHostCertReq(req HostCertReqJson, config LambdaConfig) (*HostCertRespJson,
 		return nil, errors.New("invalid token")
 	}
 
-	signed, err := SignHostSsh(config.CaKeyBytes, []byte(req.PublicKey), ssh.CertTimeInfinity, req.Token.Params.HostInstanceArn)
+	permissions := ssh.Permissions{
+		CriticalOptions: map[string]string{},
+		Extensions: map[string]string{},
+	}
+
+	principal := req.Token.Params.HostInstanceArn
+	signed, err := SignSsh(
+		config.CaKeyBytes,
+		[]byte(req.PublicKey),
+		ssh.HostCert,
+		ssh.CertTimeInfinity,
+		permissions,
+		principal,
+		[]string{principal},
+	)
+
 	if err != nil {
 		return nil, errors.Wrap(err, "signing ssh key")
 	}
@@ -181,7 +196,16 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 	}
 
 	principals := []string{req.SshUsername}
-	signed, err := SignSsh(config.CaKeyBytes, []byte(req.PublicKey), config.ValidityDuration, identity, principals)
+	signed, err := SignSsh(
+		config.CaKeyBytes,
+		[]byte(req.PublicKey),
+		ssh.UserCert,
+		uint64(time.Now().Unix() + config.ValidityDuration),
+		DefaultSshPermissions,
+		identity,
+		principals,
+	)
+
 	if err != nil {
 		return nil, errors.Wrap(err, "signing ssh key")
 	}

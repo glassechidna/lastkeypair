@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"github.com/glassechidna/lastkeypair/common"
 	"log"
+	"golang.org/x/crypto/ssh"
+	"time"
 )
 
 var sshSignCmd = &cobra.Command{
@@ -28,7 +30,16 @@ to quickly create a Cobra application.`,
 		keyBytes, _ := ioutil.ReadFile(caKeyPath)
 		userPubkeyBytes, _ := ioutil.ReadFile(userKeyPath)
 
-		formatted, err := common.SignSsh(keyBytes, userPubkeyBytes, duration, keyId, principals)
+		formatted, err := common.SignSsh(
+			keyBytes,
+			userPubkeyBytes,
+			ssh.UserCert,
+			uint64(time.Now().Unix() + duration),
+			common.DefaultSshPermissions,
+			keyId,
+			principals,
+		)
+
 		if err != nil {
 			log.Panicf("err signing ssh key: %s", err.Error())
 		}
