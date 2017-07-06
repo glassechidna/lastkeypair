@@ -105,7 +105,6 @@ type PlaintextPayload struct {
 }
 
 type TokenParams struct {
-	KeyId string
 	FromId string
 	FromAccount string
 	To string
@@ -139,7 +138,7 @@ type Token struct {
 	Signature []byte
 }
 
-func CreateToken(sess *session.Session, params TokenParams) Token {
+func CreateToken(sess *session.Session, params TokenParams, keyId string) Token {
 	context := params.ToKmsContext()
 
 	now := float64(time.Now().Unix())
@@ -157,7 +156,7 @@ func CreateToken(sess *session.Session, params TokenParams) Token {
 
 	input := &kms.EncryptInput{
 		Plaintext: plaintext,
-		KeyId: &params.KeyId,
+		KeyId: &keyId,
 		EncryptionContext: context,
 	}
 
@@ -168,7 +167,6 @@ func CreateToken(sess *session.Session, params TokenParams) Token {
 	}
 
 	blob := response.CiphertextBlob
-	params.KeyId = *response.KeyId
 	return Token{Params: params, Signature: blob}
 }
 
@@ -192,7 +190,7 @@ func ValidateToken(sess *session.Session, token Token, expectedKeyId string) boo
 	   would be worth implementing some kind of alert here?
 	 */
 	if expectedKeyId != *response.KeyId {
-		log.Panicf("Mismatching KMS key ids: %s and %s", token.Params.KeyId, *response.KeyId)
+		log.Panicf("Mismatching KMS key ids: %s and %s", expectedKeyId, *response.KeyId)
 	}
 
 	payload := PlaintextPayload{}

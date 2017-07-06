@@ -34,7 +34,6 @@ to quickly create a Cobra application.`,
 
 		token := common.Token{
 			Params: common.TokenParams{
-				KeyId: key,
 				FromId: fromId,
 				FromName: fromName,
 				FromAccount: fromAcct,

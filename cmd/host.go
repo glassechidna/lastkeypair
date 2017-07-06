@@ -152,7 +152,6 @@ func requestSignedHostKey(sess *session.Session, functionName string, request co
 
 func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, funcIdentity, instanceArn string) (*common.Token, error) {
 	params := common.TokenParams{
-		KeyId:           kmsKeyId,
 		FromId:          ident.UserId,
 		FromAccount:     ident.AccountId,
 		To:              funcIdentity,
@@ -160,7 +159,7 @@ func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, fu
 		HostInstanceArn: instanceArn,
 	}
 
-	ret := common.CreateToken(sess, params)
+	ret := common.CreateToken(sess, params, kmsKeyId)
 	return &ret, nil
 }
 

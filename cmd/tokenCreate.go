@@ -31,7 +31,6 @@ to quickly create a Cobra application.`,
 		typ := viper.GetString("principal")
 
 		params := common.TokenParams{
-			KeyId: key,
 			FromId: fromId,
 			FromName: fromName,
 			FromAccount: fromAcct,
@@ -54,7 +53,7 @@ to quickly create a Cobra application.`,
 			params.FromId = ident.UserId
 		}
 
-		token := common.CreateToken(sess, params)
+		token := common.CreateToken(sess, params, key)
 		jsonToken, _ := json.Marshal(token)
 		fmt.Println(string(jsonToken))
 	},

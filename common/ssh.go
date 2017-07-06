@@ -23,14 +23,13 @@ func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, instance
 	}
 
 	token := CreateToken(sess, TokenParams{
-		KeyId: kmsKeyId,
 		FromId: ident.UserId,
 		FromAccount: ident.AccountId,
 		FromName: ident.Username,
 		To: funcIdentity,
 		Type: ident.Type,
 		HostInstanceArn: instanceArn,
-	})
+	}, kmsKeyId)
 
 	req := UserCertReqJson{
 		EventType: "UserCertReq",
