@@ -111,10 +111,54 @@ docs.
 
 ## Alternatives
 
-* [BLESS](https://github.com/netflix/bless)
-* [python-blessclient](https://github.com/lyft/python-blessclient)
-* [sshephalopod](https://github.com/realestate-com-au/sshephalopod/)
-* [ssh-cert-authority](https://github.com/cloudtools/ssh-cert-authority)
-* [pam-ussh](https://github.com/uber/pam-ussh)
-* [facebook-doc](https://code.facebook.com/posts/365787980419535/scalable-and-secure-access-with-ssh/)
+LKP is unlikely to meet everyone's needs. Here are a few other open-source 
+solutions I found scattered across the Internet - they might be more what you need.
+Failing that, feel free to open an issue on GitHub and let's see if we can meet
+your needs!
+
+### [BLESS](https://github.com/netflix/bless)
+
+It's by Netflix, so it's probably pretty solid. BLESS is what first introduced
+me to the idea of using Lambda for SSH certificate generation. 
+
+BLESS is more designed to be invoked from a jump box, so it lacks finer-grained
+authentication or authorisation.
+
+### [python-blessclient](https://github.com/lyft/python-blessclient)
+
+python-blessclient by Lyft builds upon BLESS significantly. It allows usage
+directly from developers' laptops and uses identifies individual users. This
+project is what first introduced me to the idea of using KMS-encrypted blobs'
+encryption contexts with clever use of KMS key policies to authenticate
+users.
+
+python-blessclient is a bit cumbersome to install (especially for people without
+Python setup on their machine) and doesn't support any authorisation - only
+authentication.
+
+### [sshephalopod](https://github.com/realestate-com-au/sshephalopod/)
+
+sshephalopod by REA Group solves a similar problem, albeit has a much stronger
+focus on SAML assertions and DNS.
+
+### [ssh-cert-authority](https://github.com/cloudtools/ssh-cert-authority)
+
+ssh-cert-authority is a super interesting approach to an SSH CA, albeit one
+that is not built on top of Lambda - it requires running a daemon somewhere.
+
+This project is what reminded me that sometimes an SSH CA shouldn't trust just
+a single user - sometimes organisation rules mandate that a second person
+"vouch" for the person requesting SSH access to a system.
+
+### [pam-ussh](https://github.com/uber/pam-ussh)
+
+Uber have an interesting approach wherein they not only use an SSH CA, but also
+a custom PAM module to actually boot users out of the SSH session once the cert
+expires. The associated [blog post](https://medium.com/uber-security-privacy/introducing-the-uber-ssh-certificate-authority-4f840839c5cc)
+is a good read.
+
+### [facebook-doc](https://code.facebook.com/posts/365787980419535/scalable-and-secure-access-with-ssh/)
+
+Not actually software that you can download, but engineers at Facebook have
+blogged about how they use an SSH CA.
 
