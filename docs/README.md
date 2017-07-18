@@ -81,7 +81,33 @@ to the underlying `ssh` invocation.
 
 ## How it works
 
+At a very high level, LKP works as follows:
+
+* User specifies instance to log into
+* CLI creates a KMS token to prove its identity
+* CLI sends token and to Lambda and asks for a cert
+* Lambda validates token
+* (Optional) Lambda does authorisation
+* Lambda returns cert
+* CLI uses cert to SSH into instance
+
+This interaction is illustrated in this sequence diagram.
+
 ![lastkeypair-sequence-diagram](sequence-diagram.png)
+
+## Authorisation
+
+Out of the box LKP provides only *authentication*. This means that the identity
+of users and hosts is guaranteed, but _all_ users have access to _all_ instances
+at all times. This is often fine for smaller setups, but you might operate in
+an environment where finer granularity is desired.
+
+LKP supports authorisation by means of factoring it out into a separate
+Lambda function that you author. Essentially, on each SSH request LKP will
+call your authoriser and your function will respond "authorised" or "not authorised".
+
+More details are available in the [access control policy](docs/access-policy.md)
+docs.
 
 ## Alternatives
 
