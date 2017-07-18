@@ -31,14 +31,6 @@ type HostCertReqJson struct {
 	PublicKey string
 }
 
-type CaKeyBytesProvider interface {
-	CaKeyBytes() []byte
-}
-
-type PstoreKeyBytesProvider struct {
-
-}
-
 type UserCertRespJson struct {
 	SignedPublicKey string
 	Expiry int64
