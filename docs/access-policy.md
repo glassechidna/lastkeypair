@@ -22,21 +22,29 @@ documented in Typescript notation.
 
 ```typescript
 interface LkpAuthorizationRequest{
-    fromName?: string; // IAM username - not set for assumed roles (e.g. SAML users)
-    fromId: string; // IAM (role/user) unique ID 
-    fromAccount: string; // AWS numeric account ID containing user
-    to: "LastKeypair";
-    type: "User" | "AssumedRole" | "FederatedUser"; // type of user in 'from' fields
-    remoteInstanceArn: string; // instance ARN that user is requesting access to
+    FromName?: string; // IAM username - not set for assumed roles (e.g. SAML users)
+    FromId: string; // IAM (role/user) unique ID 
+    FromAccount: string; // AWS numeric account ID containing user
+    Type: "User" | "AssumedRole" | "FederatedUser"; // type of user in 'from' fields
+    RemoteInstanceArn: string; // instance ARN that user is requesting access to
     
-    voucherAccount?: string; // in two-person authorisations, these fields mirror 
-    voucherId?: string;      // the 'from' fields, albeit for the user doing the "vouching" 
-    voucherName?: string;
-    voucherInstanceArn?: string;
+    VoucherAccount?: string; // in two-person authorisations, these fields mirror 
+    VoucherId?: string;      // the 'from' fields, albeit for the user doing the "vouching" 
+    VoucherName?: string;11
+    VoucherInstanceArn?: string;
 }
 
 interface LkpAuthorizationResponse {
-    authorized: boolean;
+    Authorized: boolean;
+    Jumpbox?: { 
+        IpAddress: string; // ip that user should use as bastion host
+        InstanceId: string; // LKP uses instance ids as principals for trusted hosts
+        User: string; // linux user on jumpbox
+    };
+    CertificateOptions?: { // as per https://man.openbsd.org/ssh-keygen#O
+        ForceCommand?: string;
+        SourceAddress?: string;
+    };
 }
 ```
 

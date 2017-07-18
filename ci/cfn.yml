@@ -97,6 +97,7 @@ Resources:
           KMS_TOKEN_IDENTITY: !Ref FunctionKmsAuthName
           VALIDITY_DURATION: 900
           PSTORE_CA_KEY_BYTES: !Ref PstoreCAKeyBytesName
+          AUTHORIZATION_LAMBDA: !Ref AuthorizationFunction
   LambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -132,8 +133,36 @@ Resources:
             Action: kms:Decrypt
             Resource: "*"
           - Effect: Allow
+            Action: lambda:InvokeFunction
+            Resource: !GetAtt AuthorizationFunction.Arn
+          - Effect: Allow
             Action: kms:Describe*
             Resource: !GetAtt Key.Arn
+  AuthorizationFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      FunctionName: !Sub ${FunctionName}-Authorizer
+      Role: !GetAtt LambdaRole.Arn
+      Runtime: nodejs6.10
+      Timeout: 60
+      Code:
+        ZipFile: |
+          exports.handler = function(event, context, callback) {
+            console.log(JSON.stringify(event));
+            if (event.RemoteInstanceArn == "abcdef") {
+              callback(null, {authorized: true});
+            } else {
+              callback(null, {
+                authorized: true,
+                jumpbox: {
+                  ipAddress: "12.34.56.78",
+                  instanceId: "abcdef",
+                  user: "ec2-user"
+                }
+              });
+            }
+          };
 Outputs:
   FunctionArn:
     Value: !GetAtt Function.Arn

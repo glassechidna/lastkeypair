@@ -52,6 +52,11 @@ func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, instance
 		"IdentityFile=~/.lkp/id_rsa",
 	}
 
+	if signed.Jumpbox != nil {
+		proxyCommand := fmt.Sprintf("ProxyCommand='ssh -W %%h:%%p %s@%s'", signed.Jumpbox.User, signed.Jumpbox.IpAddress)
+		lkpArgs = append(lkpArgs, "-o", proxyCommand)
+	}
+
 	args = append(lkpArgs, args...)
 	sshPath, _ := exec.LookPath("ssh")
 	syscall.Exec(sshPath, args, os.Environ())

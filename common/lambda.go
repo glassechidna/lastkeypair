@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"log"
 	"golang.org/x/crypto/ssh"
+	"github.com/aws/aws-sdk-go/service/lambda"
 )
 
 type UserCertReqJson struct {
@@ -33,11 +34,36 @@ type HostCertReqJson struct {
 
 type UserCertRespJson struct {
 	SignedPublicKey string
+	Jumpbox *Jumpbox `json:",omitempty"`
 	Expiry int64
+}
+
+type Jumpbox struct {
+	IpAddress string
+	InstanceId string
+	User string
 }
 
 type HostCertRespJson struct {
 	SignedHostPublicKey string
+}
+
+type AuthorizationLambdaRequest struct {
+	FromName string // optional
+	FromId string
+	FromAccount string
+	Type string
+	RemoteInstanceArn string
+	// TODO: (#5) voucher stuff
+}
+
+type AuthorizationLambdaResponse struct {
+	Authorized bool
+	Jumpbox *Jumpbox `json:",omitempty"`
+	CertificateOptions struct {
+		ForceCommand *string `json:",omitempty"`
+		SourceAddress *string `json:",omitempty"`
+	}
 }
 
 type LambdaConfig struct {
@@ -45,6 +71,7 @@ type LambdaConfig struct {
 	KmsTokenIdentity string
 	CaKeyBytes []byte
 	ValidityDuration int64
+	AuthorizationLambda string
 }
 
 func getCaKeyBytes() ([]byte, error) {
@@ -101,6 +128,7 @@ func LambdaHandle(evt json.RawMessage, ctx *runtime.Context) (interface{}, error
 		KmsTokenIdentity: os.Getenv("KMS_TOKEN_IDENTITY"),
 		CaKeyBytes: caKeyBytes,
 		ValidityDuration: validity,
+		AuthorizationLambda: os.Getenv("AUTHORIZATION_LAMBDA"),
 	}
 
 	raw := make(map[string]string)
@@ -191,7 +219,28 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 		return nil, errors.New("target instance arn must be specified")
 	}
 
+	auth, err := DoAuthorizationLambda(req, config)
+	if err != nil {
+		return nil, errors.Wrap(err, "authorising user cert")
+	}
+
+	if !auth.Authorized {
+		return nil, errors.New("authorisation denied by auth lambda")
+	}
+
 	principals := []string{instanceArn}
+	if auth.Jumpbox != nil {
+		principals = append(principals, auth.Jumpbox.InstanceId)
+	}
+
+	permissions := DefaultSshPermissions
+	if auth.CertificateOptions.ForceCommand != nil {
+		permissions.Extensions["force-command"] = *auth.CertificateOptions.ForceCommand
+	}
+	if auth.CertificateOptions.SourceAddress != nil {
+		permissions.Extensions["source-address"] = *auth.CertificateOptions.SourceAddress
+	}
+
 	signed, err := SignSsh(
 		config.CaKeyBytes,
 		[]byte(req.PublicKey),
@@ -210,8 +259,49 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 
 	resp := UserCertRespJson{
 		SignedPublicKey: *signed,
+		Jumpbox: auth.Jumpbox,
 		Expiry: expiry.Unix(),
 	}
 
 	return &resp, nil
+}
+
+func DoAuthorizationLambda(userReq UserCertReqJson, config LambdaConfig) (*AuthorizationLambdaResponse, error) {
+	if len(config.AuthorizationLambda) == 0 {
+		return &AuthorizationLambdaResponse{Authorized: true}, nil
+	}
+
+	client := lambda.New(LambdaAwsSession())
+
+	p := userReq.Token.Params
+	req := AuthorizationLambdaRequest{
+		FromName: p.FromName,
+		FromId: p.FromId,
+		FromAccount: p.FromAccount,
+		Type: p.Type,
+		RemoteInstanceArn: p.RemoteInstanceArn,
+	}
+
+	encoded, err := json.Marshal(&req)
+	if err != nil {
+		return nil, errors.Wrap(err, "encoding authorisation lambda request")
+	}
+
+	input := &lambda.InvokeInput{
+		FunctionName: &config.AuthorizationLambda,
+		Payload: encoded,
+	}
+
+	resp, err := client.Invoke(input)
+	if err != nil {
+		return nil, errors.Wrap(err, "executing authorisation lambda")
+	}
+
+	authResp := AuthorizationLambdaResponse{}
+	err = json.Unmarshal(resp.Payload, &authResp)
+	if err != nil {
+		return nil, errors.Wrap(err, "decoding auth lambda response")
+	}
+
+	return &authResp, nil
 }
