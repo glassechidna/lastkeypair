@@ -5,6 +5,7 @@ participant Sam
 participant "LKP CLI" as lkp_cli
 participant 10.0.0.1
 participant "LKP Lambda" as lkp_lambda
+participant "Authorizer" as lkp_auth
 participant "AWS KMS" as KMS
 participant CloudTrail
 
@@ -18,7 +19,9 @@ lkp_lambda->KMS: Decrypt token with given context
 note right of KMS: KMS will reject decryption API call if context not \n identical to context provided during encryption \n or **to** context does not match LKP Lambda's \n IAM execution role (due to key policy)
 KMS->CloudTrail: kms:Decrypt with full context
 KMS->lkp_lambda: Plaintext of validity window timestamp
-note right of lkp_lambda: Will only sign pubkey if token \n hasn't expired
+lkp_lambda->lkp_auth: Authorization check using context
+lkp_auth->lkp_lambda: Authorized=true/false
+note right of lkp_lambda: Will only sign pubkey if a) authorizer \nisn't configured or b) authorizer \nreturns true
 lkp_lambda->lkp_cli: Certificate of user pubkey signed by SSH CA
 note left of lkp_cli: Certificate is valid for limited time. \n Time limit chosen by LKP Lambda
 lkp_cli->10.0.0.1: ssh -o IdentityFile=... ec2-user@10.0.0.1
