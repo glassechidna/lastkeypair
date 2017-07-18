@@ -106,7 +106,7 @@ LKP supports authorisation by means of factoring it out into a separate
 Lambda function that you author. Essentially, on each SSH request LKP will
 call your authoriser and your function will respond "authorised" or "not authorised".
 
-More details are available in the [access control policy](docs/access-policy.md)
+More details are available in the [access control policy](access-policy.md)
 docs.
 
 ## Alternatives
