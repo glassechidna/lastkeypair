@@ -3,6 +3,11 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"github.com/glassechidna/lastkeypair/common"
+	"os/exec"
+	"syscall"
+	"os"
+	"fmt"
+	"strings"
 )
 
 var sshExecCmd = &cobra.Command{
@@ -24,8 +29,16 @@ to quickly create a Cobra application.`,
 		funcIdentity, _ := cmd.PersistentFlags().GetString("func-identity")
 		instanceArn, _ := cmd.PersistentFlags().GetString("instance-arn")
 		username, _ := cmd.PersistentFlags().GetString("ssh-username")
+		dryRun, _ := cmd.PersistentFlags().GetBool("dry-run")
 
-		common.SshExec(sess, lambdaFunc, funcIdentity, kmsKeyId, instanceArn, username, args)
+		sshcmd := common.SshCommand(sess, lambdaFunc, funcIdentity, kmsKeyId, instanceArn, username, args)
+
+		if dryRun {
+			fmt.Println(strings.Join(sshcmd, " "))
+		} else {
+			sshPath, _ := exec.LookPath("ssh")
+			syscall.Exec(sshPath, sshcmd, os.Environ())
+		}
 	},
 }
 
@@ -37,4 +50,5 @@ func init() {
 	sshExecCmd.PersistentFlags().String("func-identity", "LastKeypair", "")
 	sshExecCmd.PersistentFlags().String("instance-arn", "", "")
 	sshExecCmd.PersistentFlags().String("ssh-username", "ec2-user", "Username that you wish to SSH in with")
+	sshExecCmd.PersistentFlags().Bool("dry-run", false, "Do everything _except_ the SSH login")
 }

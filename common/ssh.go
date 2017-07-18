@@ -9,12 +9,10 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/pkg/errors"
-	"os/exec"
-	"syscall"
-	"os"
+	"fmt"
 )
 
-func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, instanceArn, username string, args []string) {
+func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, instanceArn, username string, args []string) []string {
 	kp, _ := MyKeyPair()
 
 	ident, err := CallerIdentityUser(sess)
@@ -58,8 +56,7 @@ func SshExec(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, instance
 	}
 
 	args = append(lkpArgs, args...)
-	sshPath, _ := exec.LookPath("ssh")
-	syscall.Exec(sshPath, args, os.Environ())
+	return args
 }
 
 func RequestSignedCert(sess *session.Session, lambdaArn string, req UserCertReqJson) (*UserCertRespJson, error) {
