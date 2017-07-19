@@ -67,7 +67,7 @@ To do this you add this to your userdata:
 The setup on your laptop is simpler than configuring your EC2 instances. 
 
 Firstly download the correct LKP binary for your operating system from the 
-[GitHub Releases][https://github.com/glassechidna/lastkeypair/releases] page
+[GitHub Releases](https://github.com/glassechidna/lastkeypair/releases) page
 and place it somewhere on your `PATH`. 
 
 If your administrator selected the default LKP Lambda and KMS key alias, you can
