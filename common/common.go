@@ -111,8 +111,9 @@ type TokenParams struct {
 	Type string
 
 	// optional fields below this comment
-	FromName string
 	FromName string `json:",omitempty"`
+	Vouchee string `json:",omitempty"`
+	Context string `json:",omitempty"`
 
 	// the reason we have both these fields (rather than overloading one "InstanceArn" field)
 	// is because we want to specify a KMS key policy that HostInstanceArn _MUST_ match
@@ -140,6 +141,14 @@ func (params *TokenParams) ToKmsContext() map[string]*string {
 
 	if len(params.RemoteInstanceArn) > 0 {
 		context["remoteInstanceArn"] = &params.RemoteInstanceArn
+	}
+
+	if len(params.Vouchee) > 0 {
+		context["vouchee"] = &params.Vouchee
+	}
+
+	if len(params.Context) > 0 {
+		context["context"] = &params.Context
 	}
 
 	return context
