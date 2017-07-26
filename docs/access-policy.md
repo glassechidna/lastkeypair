@@ -27,11 +27,14 @@ interface LkpIdentity {
     Account: string; // AWS numeric account ID containing user
     Type: "User" | "AssumedRole" | "FederatedUser"; // type of user 
 }
+type LkpVoucher = LkpIdentity & { 
+    Vouchee; string; // free-form identifier of vouched user
+    Context: string; // free-form identifier, could be e.g. instance arn
+};
 interface LkpAuthorizationRequest {
     From: LkpIdentity;
     RemoteInstanceArn: string; // instance ARN that user is requesting access to
-    Voucher?: LkpIdentity;
-    VoucherContext?: string; // instance that a voucher vouched for
+    Vouchers?: LkpVoucher[];
 }
 
 interface LkpAuthorizationResponse {

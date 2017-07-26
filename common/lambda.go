@@ -55,11 +55,19 @@ type AuthorizationLambdaIdentity struct {
 	Type    string
 }
 
+type AuthorizationLambdaVoucher struct {
+	Name    *string `json:",omitempty"`
+	Id      string
+	Account string
+	Type    string
+	Vouchee	string
+	Context string
+}
+
 type AuthorizationLambdaRequest struct {
 	From AuthorizationLambdaIdentity
 	RemoteInstanceArn string
-	Voucher *AuthorizationLambdaIdentity `json:",omitempty"`
-	VoucherContext *string `json:",omitempty"`
+	Vouchers []AuthorizationLambdaVoucher `json:",omitempty"`
 }
 
 type AuthorizationLambdaResponse struct {
@@ -287,6 +295,19 @@ func DoAuthorizationLambda(userReq UserCertReqJson, config LambdaConfig) (*Autho
 			Type: p.Type,
 		},
 		RemoteInstanceArn: p.RemoteInstanceArn,
+	}
+
+	for _, v := range p.Vouchers {
+		vp := v.Params
+		voucher := AuthorizationLambdaVoucher{
+			Name: &vp.FromName,
+			Id: vp.FromId,
+			Account: vp.FromAccount,
+			Type: vp.Type,
+			Vouchee: vp.Vouchee,
+			Context: vp.Context,
+		}
+		req.Vouchers = append(req.Vouchers, voucher)
 	}
 
 	encoded, err := json.Marshal(&req)

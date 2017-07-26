@@ -114,6 +114,7 @@ type TokenParams struct {
 	FromName string `json:",omitempty"`
 	Vouchee string `json:",omitempty"`
 	Context string `json:",omitempty"`
+	Vouchers []VoucherToken `json:",omitempty"`
 
 	// the reason we have both these fields (rather than overloading one "InstanceArn" field)
 	// is because we want to specify a KMS key policy that HostInstanceArn _MUST_ match
@@ -125,30 +126,46 @@ type TokenParams struct {
 }
 
 func (params *TokenParams) ToKmsContext() map[string]*string {
+	iterateParams := func(p *TokenParams, cb func(string, *string)) {
+		cb("fromId", &p.FromId)
+		cb("fromAccount", &p.FromAccount)
+		cb("to", &p.To)
+		cb("type", &p.Type)
+
+		if len(p.FromName) > 0 {
+			cb("fromName", &p.FromName)
+		}
+
+		if len(p.HostInstanceArn) > 0 {
+			cb("hostInstanceArn", &p.HostInstanceArn)
+		}
+
+		if len(p.RemoteInstanceArn) > 0 {
+			cb("remoteInstanceArn", &p.RemoteInstanceArn)
+		}
+
+		if len(p.Vouchee) > 0 {
+			cb("vouchee", &p.Vouchee)
+		}
+
+		if len(p.Context) > 0 {
+			cb("context", &p.Context)
+		}
+	}
+
 	context := make(map[string]*string)
-	context["fromId"] = &params.FromId
-	context["fromAccount"] = &params.FromAccount
-	context["to"] = &params.To
-	context["type"] = &params.Type
+	iterateParams(params, func(key string, val *string) {
+		context[key] = val
+	})
 
-	if len(params.FromName) > 0 {
-		context["fromName"] = &params.FromName
-	}
+	if len(params.Vouchers) > 0 {
+		for i, v := range(params.Vouchers) {
+			keyPrefix := fmt.Sprintf("voucher-%d-", i)
 
-	if len(params.HostInstanceArn) > 0 {
-		context["hostInstanceArn"] = &params.HostInstanceArn
-	}
-
-	if len(params.RemoteInstanceArn) > 0 {
-		context["remoteInstanceArn"] = &params.RemoteInstanceArn
-	}
-
-	if len(params.Vouchee) > 0 {
-		context["vouchee"] = &params.Vouchee
-	}
-
-	if len(params.Context) > 0 {
-		context["context"] = &params.Context
+			iterateParams(&v.Params, func(key string, val *string) {
+				context[keyPrefix + key] = val
+			})
+		}
 	}
 
 	return context

@@ -12,12 +12,21 @@ import (
 	"fmt"
 )
 
-func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, instanceArn, username string, args []string) []string {
+func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, instanceArn, username string, encodedVouchers, args []string) []string {
 	kp, _ := MyKeyPair()
 
 	ident, err := CallerIdentityUser(sess)
 	if err != nil {
 		log.Panicf("error getting aws user identity: %+v\n", err)
+	}
+
+	vouchers := []VoucherToken{}
+	for _, encVoucher := range(encodedVouchers) {
+		voucher, err := DecodeVoucherToken(encVoucher)
+		if err != nil {
+			log.Panicf("couldn't decode voucher: %+v\n", err)
+		}
+		vouchers = append(vouchers, *voucher)
 	}
 
 	token := CreateToken(sess, TokenParams{
@@ -27,6 +36,7 @@ func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, insta
 		To: funcIdentity,
 		Type: ident.Type,
 		RemoteInstanceArn: instanceArn,
+		Vouchers: vouchers,
 	}, kmsKeyId)
 
 	req := UserCertReqJson{

@@ -30,8 +30,9 @@ to quickly create a Cobra application.`,
 		instanceArn, _ := cmd.PersistentFlags().GetString("instance-arn")
 		username, _ := cmd.PersistentFlags().GetString("ssh-username")
 		dryRun, _ := cmd.PersistentFlags().GetBool("dry-run")
+		vouchers, _ := cmd.PersistentFlags().GetStringSlice("voucher")
 
-		sshcmd := common.SshCommand(sess, lambdaFunc, funcIdentity, kmsKeyId, instanceArn, username, args)
+		sshcmd := common.SshCommand(sess, lambdaFunc, funcIdentity, kmsKeyId, instanceArn, username, vouchers, args)
 
 		if dryRun {
 			fmt.Println(strings.Join(sshcmd, " "))
@@ -50,5 +51,6 @@ func init() {
 	sshExecCmd.PersistentFlags().String("func-identity", "LastKeypair", "")
 	sshExecCmd.PersistentFlags().String("instance-arn", "", "")
 	sshExecCmd.PersistentFlags().String("ssh-username", "ec2-user", "Username that you wish to SSH in with")
+	sshExecCmd.PersistentFlags().StringSlice("voucher", []string{}, "Optional voucher(s) from other people")
 	sshExecCmd.PersistentFlags().Bool("dry-run", false, "Do everything _except_ the SSH login")
 }
