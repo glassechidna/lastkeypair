@@ -21,17 +21,17 @@ The format of the Lambda's request parameters and the expected response are
 documented in Typescript notation. 
 
 ```typescript
-interface LkpAuthorizationRequest{
-    FromName?: string; // IAM username - not set for assumed roles (e.g. SAML users)
-    FromId: string; // IAM (role/user) unique ID 
-    FromAccount: string; // AWS numeric account ID containing user
-    Type: "User" | "AssumedRole" | "FederatedUser"; // type of user in 'from' fields
+interface LkpIdentity {
+    Name?: string; // IAM username - not set for assumed roles (e.g. SAML users)
+    Id: string; // IAM (role/user) unique ID, equal to ${aws:userid} IAM policy variable
+    Account: string; // AWS numeric account ID containing user
+    Type: "User" | "AssumedRole" | "FederatedUser"; // type of user 
+}
+interface LkpAuthorizationRequest {
+    From: LkpIdentity;
     RemoteInstanceArn: string; // instance ARN that user is requesting access to
-    
-    VoucherAccount?: string; // in two-person authorisations, these fields mirror 
-    VoucherId?: string;      // the 'from' fields, albeit for the user doing the "vouching" 
-    VoucherName?: string;11
-    VoucherInstanceArn?: string;
+    Voucher?: LkpIdentity;
+    VoucherContext?: string; // instance that a voucher vouched for
 }
 
 interface LkpAuthorizationResponse {
@@ -57,35 +57,35 @@ exports.handler = function(event, context, callback) {
     // we allow multiple a third-party account ssh access and we don't want them to be
     // sneaky and create IAM users with the same name as us. we _could_ use IAM unique IDs
     // but in this case we'd prefer to check (acctID, username) tuples.
-    var isMainAccount = event.fromAccount === '9876543210';
+    var isMainAccount = event.From.Account === '9876543210';
     
     var now = new Date();
     var hour = now.getUTCHours();
     var authorized = function() { callback({ authorized: true }) };
 
-    if (isMainAccount && event.fromName === 'aidan.steele@glassechidna.com.au') authorized(); // aidan is all powerful
+    if (isMainAccount && event.From.Name === 'aidan.steele@glassechidna.com.au') authorized(); // aidan is all powerful
 
-    if (isMainAccount && event.fromName === 'benjamin.dobell@glassechidna.com.au') {
+    if (isMainAccount && event.From.Name === 'benjamin.dobell@glassechidna.com.au') {
         if (hour >= 9 && hour < 17) authorized(); // ben usually only has access during work hours
     }
     
-    if (event.fromAccount === '01234567890') { // aws account id of 3rd-party support provider
+    if (event.From.Account === '01234567890') { // aws account id of 3rd-party support provider
         if (hour < 9 || hour >= 17) authorized(); // our trusted partner is allowed in outside of work hours
     }
 
     var rolePrefix = "AROAIIWP2XR7EN6EXAMPLE:";
-    if (isMainAccount && event.fromId.indexOf(rolePrefix) === 0) {
-        var roleSessionName = event.fromId.substr(rolePrefix.length);
+    if (isMainAccount && event.From.Id.indexOf(rolePrefix) === 0) {
+        var roleSessionName = event.From.Id.substr(rolePrefix.length);
         // dan isn't an IAM user (he uses SAML to log into AWS) so we check the role session
         // name from his sts:AssumeRole call
         if (roleSessionName === 'daniel.whyte@glassechidna.com') authorized();
     }
 
     var partyHost = 'arn:aws:ec2:ap-southeast-2:9876543210:instance/i-0123abcd';
-    if (event.remoteInstanceArn === partyHost) authorized(); // we'll let anyone on our party box
+    if (event.RemoteInstanceArn === partyHost) authorized(); // we'll let anyone on our party box
 
     var devRegion = 'arn:aws:ec2:us-east-1:9876543210';
-    if (event.remoteInstanceArn.indexOf(devRegion) === 0) authorized(); // the dev region is a free-for-all
+    if (event.RemoteInstanceArn.indexOf(devRegion) === 0) authorized(); // the dev region is a free-for-all
 
     callback({ authorized: false });
 }

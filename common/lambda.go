@@ -48,13 +48,18 @@ type HostCertRespJson struct {
 	SignedHostPublicKey string
 }
 
+type AuthorizationLambdaIdentity struct {
+	Name    *string `json:",omitempty"`
+	Id      string
+	Account string
+	Type    string
+}
+
 type AuthorizationLambdaRequest struct {
-	FromName string // optional
-	FromId string
-	FromAccount string
-	Type string
+	From AuthorizationLambdaIdentity
 	RemoteInstanceArn string
-	// TODO: (#5) voucher stuff
+	Voucher *AuthorizationLambdaIdentity `json:",omitempty"`
+	VoucherContext *string `json:",omitempty"`
 }
 
 type AuthorizationLambdaResponse struct {
@@ -275,10 +280,12 @@ func DoAuthorizationLambda(userReq UserCertReqJson, config LambdaConfig) (*Autho
 
 	p := userReq.Token.Params
 	req := AuthorizationLambdaRequest{
-		FromName: p.FromName,
-		FromId: p.FromId,
-		FromAccount: p.FromAccount,
-		Type: p.Type,
+		From: AuthorizationLambdaIdentity{
+			Name: &p.FromName,
+			Id: p.FromId,
+			Account: p.FromAccount,
+			Type: p.Type,
+		},
 		RemoteInstanceArn: p.RemoteInstanceArn,
 	}
 
