@@ -112,13 +112,14 @@ type TokenParams struct {
 
 	// optional fields below this comment
 	FromName string
+	FromName string `json:",omitempty"`
 
 	// the reason we have both these fields (rather than overloading one "InstanceArn" field)
 	// is because we want to specify a KMS key policy that HostInstanceArn _MUST_ match
 	// the ec2:SourceInstanceARN if it exists. if we didn't do this, then anyone _not_ on
 	// an instance could request a host cert.
-	HostInstanceArn   string // this field is for when an instance is requesting a host cert
-	RemoteInstanceArn string // this field is for when a user is requesting a user cert for a specific host
+	HostInstanceArn   string `json:",omitempty"` // this field is for when an instance is requesting a host cert
+	RemoteInstanceArn string `json:",omitempty"` // this field is for when a user is requesting a user cert for a specific host
 
 }
 
