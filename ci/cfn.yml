@@ -150,10 +150,23 @@ Resources:
         ZipFile: |
           exports.handler = function(event, context, callback) {
             console.log(JSON.stringify(event));
+            var cb = function(err, resp) {
+              console.log(JSON.stringify(resp));
+              callback(err, resp);
+            }
             if (event.RemoteInstanceArn == "abcdef") {
-              callback(null, {authorized: true});
+              cb(null, {authorized: true});
+            } else if (event.Vouchers && event.Vouchers.length > 0) {
+              cb(null, {
+                authorized: true,
+                jumpbox: {
+                  ipAddress: "12.34.56.78",
+                  instanceId: "abcdef",
+                  user: event.Vouchers[0].Name // really just for testing purposes
+                }
+              });
             } else {
-              callback(null, {
+              cb(null, {
                 authorized: true,
                 jumpbox: {
                   ipAddress: "12.34.56.78",
