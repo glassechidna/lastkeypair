@@ -28,7 +28,7 @@ interface LkpIdentity {
     Type: "User" | "AssumedRole" | "FederatedUser"; // type of user 
 }
 type LkpVoucher = LkpIdentity & { 
-    Vouchee; string; // free-form identifier of vouched user
+    Vouchee: string; // free-form identifier of vouched user
     Context: string; // free-form identifier, could be e.g. instance arn
 };
 interface LkpAuthorizationRequest {
