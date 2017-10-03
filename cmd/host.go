@@ -60,11 +60,19 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 		return errors.Wrap(err, "creating aws session")
 	}
 
+	client := ec2metadata.New(sess)
+	if client.Available() {
+		region, err := client.Region()
+		if err != nil {
+			return errors.Wrap(err, "getting region from ec2 metadata")
+		}
+		sess = sess.Copy(aws.NewConfig().WithRegion(region))
+	}
+
 	ident, err := common.CallerIdentityUser(sess)
-	instanceArn, err := getInstanceArn(sess)
+	instanceArn, err := getInstanceArn(client)
 	token, err := hostCertToken(sess, *ident, kmsKeyId, funcIdentity, *instanceArn)
 
-	client := ec2metadata.New(sess)
 	caPubkey, err := client.GetMetadata("public-keys/0/openssh-key")
 	if err != nil {
 		return errors.Wrap(err, "fetching ssh CA key")
@@ -105,9 +113,7 @@ AuthorizedPrincipalsFile %s
 	return nil
 }
 
-func getInstanceArn(sess *session.Session) (*string, error) {
-	client := ec2metadata.New(sess)
-
+func getInstanceArn(client *ec2metadata.EC2Metadata) (*string, error) {
 	region, err := client.Region()
 	if err != nil {
 		return nil, errors.Wrap(err, "getting region")
