@@ -176,6 +176,17 @@ type Token struct {
 	Signature []byte
 }
 
+func kmsClientForKeyId(sess *session.Session, keyId string) *kms.KMS {
+	if strings.HasPrefix(keyId, "arn:aws:kms") {
+		parts := strings.Split(keyId, ":")
+		region := parts[3]
+		sess = sess.Copy(aws.NewConfig().WithRegion(region))
+	}
+
+	return kms.New(sess)
+
+}
+
 func CreateToken(sess *session.Session, params TokenParams, keyId string) Token {
 	context := params.ToKmsContext()
 
@@ -198,7 +209,7 @@ func CreateToken(sess *session.Session, params TokenParams, keyId string) Token 
 		EncryptionContext: context,
 	}
 
-	client := kms.New(sess)
+	client := kmsClientForKeyId(sess, keyId)
 	response, err := client.Encrypt(input)
 	if err != nil {
 		log.Panicf("Encrytion error: %s", err.Error())
