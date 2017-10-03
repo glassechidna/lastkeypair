@@ -99,11 +99,11 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 		return errors.Wrap(err, "writing ca pubkey to filesystem")
 	}
 
-	authorizedPrincipalsBytes := []byte(fmt.Sprintf("%s\n", instanceArn))
+	authorizedPrincipalsBytes := []byte(fmt.Sprintf("%s\n", *instanceArn))
 
 	err = ioutil.WriteFile(authorizedPrincipalsPath, authorizedPrincipalsBytes, 0444)
 	if err != nil {
-		return errors.Wrap(err, "writing ca pubkey to filesystem")
+		return errors.Wrap(err, "writing authorized principals to filesystem")
 	}
 
 	err = appendToFile(sshdConfigPath, fmt.Sprintf(`
