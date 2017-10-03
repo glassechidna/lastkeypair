@@ -184,7 +184,6 @@ func kmsClientForKeyId(sess *session.Session, keyId string) *kms.KMS {
 	}
 
 	return kms.New(sess)
-
 }
 
 func CreateToken(sess *session.Session, params TokenParams, keyId string) Token {

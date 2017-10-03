@@ -12,8 +12,6 @@ import (
 	"log"
 	"github.com/glassechidna/lastkeypair/common"
 	"github.com/aws/aws-sdk-go/aws"
-	"encoding/json"
-	"github.com/aws/aws-sdk-go/service/lambda"
 	"os"
 )
 
@@ -85,7 +83,7 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 		return errors.Wrap(err, "fetching ssh CA key")
 	}
 
-	response, err := requestSignedHostKey(sess, functionName, common.HostCertReqJson{
+	response, err := common.RequestSignedHostCert(sess, functionName, common.HostCertReqJson{
 		EventType: "HostCertReq",
 		Token: *token,
 		PublicKey: hostKey,
@@ -134,33 +132,6 @@ func getInstanceArn(client *ec2metadata.EC2Metadata) (*string, error) {
 	ret := fmt.Sprintf("arn:aws:ec2:%s:%s:instance/%s", region, ident.AccountID, ident.InstanceID)
 	return &ret, nil
 
-}
-
-func requestSignedHostKey(sess *session.Session, functionName string, request common.HostCertReqJson) (*common.HostCertRespJson, error) {
-	payload, err := json.Marshal(&request)
-	if err != nil {
-		return nil, errors.Wrap(err, "couldn't serialise host cert req json")
-	}
-
-	client := lambda.New(sess)
-
-	input := lambda.InvokeInput{
-		FunctionName: aws.String(functionName),
-		Payload: payload,
-	}
-
-	resp, err := client.Invoke(&input)
-	if err != nil {
-		return nil, errors.Wrap(err, "invoking CA lambda")
-	}
-
-	response := common.HostCertRespJson{}
-	err = json.Unmarshal(resp.Payload, &response)
-	if err != nil {
-		return nil, errors.Wrap(err, "unmarshalling lambda resp payload")
-	}
-
-	return &response, nil
 }
 
 func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, funcIdentity, instanceArn string) (*common.Token, error) {
