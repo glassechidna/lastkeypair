@@ -43,13 +43,7 @@ to quickly create a Cobra application.`,
 	},
 }
 
-func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId, funcIdentity string) error {
-	hostKeyBytes, err := ioutil.ReadFile(hostKeyPath)
-	if err != nil {
-		return errors.Wrap(err, "reading ssh host key")
-	}
-	hostKey := string(hostKeyBytes)
-
+func hostSession() (*session.Session, error) {
 	sessOpts := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
@@ -57,17 +51,30 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 
 	sess, err := session.NewSessionWithOptions(sessOpts)
 	if err != nil {
-		return errors.Wrap(err, "creating aws session")
+		return nil, errors.Wrap(err, "creating aws session")
 	}
 
 	client := ec2metadata.New(sess)
 	if client.Available() {
 		region, err := client.Region()
 		if err != nil {
-			return errors.Wrap(err, "getting region from ec2 metadata")
+			return nil, errors.Wrap(err, "getting region from ec2 metadata")
 		}
 		sess = sess.Copy(aws.NewConfig().WithRegion(region))
 	}
+
+	return sess, nil
+}
+
+func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId, funcIdentity string) error {
+	hostKeyBytes, err := ioutil.ReadFile(hostKeyPath)
+	if err != nil {
+		return errors.Wrap(err, "reading ssh host key")
+	}
+	hostKey := string(hostKeyBytes)
+
+	sess, err := hostSession()
+	client := ec2metadata.New(sess)
 
 	ident, err := common.CallerIdentityUser(sess)
 	instanceArn, err := getInstanceArn(client)
