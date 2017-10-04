@@ -13,6 +13,7 @@ import (
 	"github.com/glassechidna/lastkeypair/common"
 	"github.com/aws/aws-sdk-go/aws"
 	"os"
+	"strings"
 )
 
 var hostCmd = &cobra.Command{
@@ -109,7 +110,7 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 		return errors.Wrap(err, "writing ca pubkey to filesystem")
 	}
 
-	authorizedPrincipalsBytes := []byte(fmt.Sprintf("%s\n", *instanceArn))
+	authorizedPrincipalsBytes := []byte(fmt.Sprintf("%s\n", strings.Join(principals, "\n")))
 
 	err = ioutil.WriteFile(authorizedPrincipalsPath, authorizedPrincipalsBytes, 0444)
 	if err != nil {
