@@ -154,8 +154,11 @@ Resources:
               console.log(JSON.stringify(resp));
               callback(err, resp);
             }
-            if (event.Kind === "LkpUserCertAuthorizationRequest") {
-              cb(null, {authorized: false});
+            if (event.Kind === "LkpHostCertAuthorizationRequest") {
+              cb(null, {
+                authorized: true,
+                principals: event.Principals
+              });
               return;
             }
             if (event.RemoteInstanceArn == "abcdef") {
