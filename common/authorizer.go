@@ -6,14 +6,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-type AuthorizationLambdaIdentity struct {
+type authorizationLambdaIdentity struct {
 	Name    *string `json:",omitempty"`
 	Id      string
 	Account string
 	Type    string
 }
 
-type AuthorizationLambdaVoucher struct {
+type authorizationLambdaVoucher struct {
 	Name    *string `json:",omitempty"`
 	Id      string
 	Account string
@@ -22,14 +22,15 @@ type AuthorizationLambdaVoucher struct {
 	Context string
 }
 
-type AuthorizationLambdaRequest struct {
-	From AuthorizationLambdaIdentity
+type LkpUserCertAuthorizationRequest struct {
+	From              authorizationLambdaIdentity
 	RemoteInstanceArn string
-	SshUsername string
-	Vouchers []AuthorizationLambdaVoucher `json:",omitempty"`
+	SshUsername       string
+	Principals        []string
+	Vouchers          []authorizationLambdaVoucher `json:",omitempty"`
 }
 
-type AuthorizationLambdaResponse struct {
+type LkpUserCertAuthorizationResponse struct {
 	Authorized bool
 	Principals []string
 	Jumpboxes []Jumpbox `json:",omitempty"`
@@ -39,31 +40,80 @@ type AuthorizationLambdaResponse struct {
 	}
 }
 
-func DoAuthorizationLambda(userReq UserCertReqJson, config LambdaConfig) (*AuthorizationLambdaResponse, error) {
-	if len(config.AuthorizationLambda) == 0 {
-		return &AuthorizationLambdaResponse{
+type LkpHostCertAuthorizationRequest struct {
+	From            authorizationLambdaIdentity
+	HostInstanceArn string
+	Principals      []string
+}
+
+type LkpHostCertAuthorizationResponse struct {
+	Authorized bool
+	KeyId string
+	Principals []string
+}
+
+type AuthorizationLambda struct {
+	config LambdaConfig
+}
+
+func NewAuthorizationLambda(config LambdaConfig) *AuthorizationLambda {
+	return &AuthorizationLambda{config: config}
+}
+
+func (a *AuthorizationLambda) doLambda(req interface{}, resp interface{}) error {
+	client := lambda.New(LambdaAwsSession())
+
+	encoded, err := json.Marshal(&req)
+	if err != nil {
+		return errors.Wrap(err, "encoding authorisation lambda request")
+	}
+
+	input := &lambda.InvokeInput{
+		FunctionName: &a.config.AuthorizationLambda,
+		Payload: encoded,
+	}
+
+	lambdaResp, err := client.Invoke(input)
+	if err != nil {
+		return errors.Wrap(err, "executing authorisation lambda")
+	}
+
+	err = json.Unmarshal(lambdaResp.Payload, resp)
+	if err != nil {
+		return errors.Wrap(err, "decoding auth lambda response")
+	}
+
+	return nil
+}
+
+func tokenParamsToAuthLambdaIdentity(p TokenParams) authorizationLambdaIdentity {
+	return authorizationLambdaIdentity{
+		Name: &p.FromName,
+		Id: p.FromId,
+		Account: p.FromAccount,
+		Type: p.Type,
+	}
+}
+
+func (a *AuthorizationLambda) DoUserReq(userReq UserCertReqJson) (*LkpUserCertAuthorizationResponse, error) {
+	if len(a.config.AuthorizationLambda) == 0 {
+		return &LkpUserCertAuthorizationResponse{
 			Authorized: true,
 			Principals: []string{userReq.Token.Params.RemoteInstanceArn},
 		}, nil
 	}
 
-	client := lambda.New(LambdaAwsSession())
-
 	p := userReq.Token.Params
-	req := AuthorizationLambdaRequest{
-		From: AuthorizationLambdaIdentity{
-			Name: &p.FromName,
-			Id: p.FromId,
-			Account: p.FromAccount,
-			Type: p.Type,
-		},
+	req := LkpUserCertAuthorizationRequest{
+		From: tokenParamsToAuthLambdaIdentity(p),
 		RemoteInstanceArn: p.RemoteInstanceArn,
 		SshUsername: userReq.Token.Params.SshUsername,
+		Principals: []string{p.RemoteInstanceArn},
 	}
 
 	for _, v := range p.Vouchers {
 		vp := v.Params
-		voucher := AuthorizationLambdaVoucher{
+		voucher := authorizationLambdaVoucher{
 			Name: &vp.FromName,
 			Id: vp.FromId,
 			Account: vp.FromAccount,
@@ -74,25 +124,42 @@ func DoAuthorizationLambda(userReq UserCertReqJson, config LambdaConfig) (*Autho
 		req.Vouchers = append(req.Vouchers, voucher)
 	}
 
-	encoded, err := json.Marshal(&req)
+	authResp := LkpUserCertAuthorizationResponse{}
+	err := a.doLambda(req, &authResp)
 	if err != nil {
-		return nil, errors.Wrap(err, "encoding authorisation lambda request")
+		return nil, errors.Wrap(err, "invoking user cert authorisation lambda")
 	}
 
-	input := &lambda.InvokeInput{
-		FunctionName: &config.AuthorizationLambda,
-		Payload: encoded,
+	return &authResp, nil
+}
+
+
+func (a *AuthorizationLambda) DoHostReq(hostReq HostCertReqJson) (*LkpHostCertAuthorizationResponse, error) {
+	hostArn := hostReq.Token.Params.HostInstanceArn
+
+	if len(a.config.AuthorizationLambda) == 0 {
+		return &LkpHostCertAuthorizationResponse{
+			Authorized: true,
+			KeyId: hostArn,
+			Principals: []string{hostArn},
+		}, nil
 	}
 
-	resp, err := client.Invoke(input)
-	if err != nil {
-		return nil, errors.Wrap(err, "executing authorisation lambda")
+	p := hostReq.Token.Params
+	req := LkpHostCertAuthorizationRequest{
+		From: tokenParamsToAuthLambdaIdentity(p),
+		HostInstanceArn: hostArn,
+		Principals: []string{p.RemoteInstanceArn},
 	}
 
-	authResp := AuthorizationLambdaResponse{}
-	err = json.Unmarshal(resp.Payload, &authResp)
+	authResp := LkpHostCertAuthorizationResponse{}
+	err := a.doLambda(req, &authResp)
 	if err != nil {
-		return nil, errors.Wrap(err, "decoding auth lambda response")
+		return nil, errors.Wrap(err, "invoking host cert authorisation lambda")
+	}
+
+	if len(authResp.KeyId) == 0 {
+		authResp.KeyId = hostArn
 	}
 
 	return &authResp, nil

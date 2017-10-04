@@ -132,15 +132,17 @@ func DoHostCertReq(req HostCertReqJson, config LambdaConfig) (*HostCertRespJson,
 		Extensions: map[string]string{},
 	}
 
-	principal := req.Token.Params.HostInstanceArn
+	authLambda := NewAuthorizationLambda(config)
+	auth, err := authLambda.DoHostReq(req)
+
 	signed, err := SignSsh(
 		config.CaKeyBytes,
 		[]byte(req.PublicKey),
 		ssh.HostCert,
 		ssh.CertTimeInfinity,
 		permissions,
-		principal,
-		[]string{principal},
+		auth.KeyId,
+		auth.Principals,
 	)
 
 	if err != nil {
@@ -171,7 +173,8 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 		return nil, errors.New("target instance arn must be specified")
 	}
 
-	auth, err := DoAuthorizationLambda(req, config)
+	authLambda := NewAuthorizationLambda(config)
+	auth, err := authLambda.DoUserReq(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "authorising user cert")
 	}

@@ -27,18 +27,21 @@ interface LkpIdentity {
     Account: string; // AWS numeric account ID containing user
     Type: "User" | "AssumedRole" | "FederatedUser"; // type of user 
 }
+
 type LkpVoucher = LkpIdentity & { 
     Vouchee: string; // free-form identifier of vouched user
     Context: string; // free-form identifier, could be e.g. instance arn
 };
-interface LkpAuthorizationRequest {
+
+interface LkpUserCertAuthorizationRequest {
+    Kind: "LkpUserCertAuthorizationRequest";
     From: LkpIdentity;
     RemoteInstanceArn: string; // instance ARN that user is requesting access to
     SshUsername: string;
     Vouchers?: LkpVoucher[];
 }
 
-interface LkpAuthorizationResponse {
+interface LkpUserCertAuthorizationResponse {
     Authorized: boolean;
     Principals: string[]; // LKP uses instance ARNs as principals for trusted hosts
     Jumpboxes?: { 
@@ -50,6 +53,24 @@ interface LkpAuthorizationResponse {
         SourceAddress?: string;
     };
 }
+
+interface LkpHostCertAuthorizationRequest {
+    Kind: "LkpHostCertAuthorizationRequest";
+    From: LkpIdentity;
+    HostInstanceArn: string;
+    Principals: string[];
+}
+
+interface LkpHostCertAuthorizationResponse {
+    Authorized: boolean;
+    KeyId?: string; // defaults to HostInstanceArn if not provided
+    Principals: string[]; // LKP uses instance ARNs as principals for trusted hosts. 
+                          // additional principals are useful for bastion box domain 
+                          // names, etc
+}
+
+type LkpAuthorizationRequest = LkpHostCertAuthorizationRequest | LkpUserCertAuthorizationRequest;
+type LkpAuthorizationResponse = LkpUserCertAuthorizationResponse | LkpHostCertAuthorizationResponse;
 ```
 
 ## Example
@@ -66,6 +87,8 @@ exports.handler = function(event, context, callback) {
     var now = new Date();
     var hour = now.getUTCHours();
     var authorized = function() { callback({ authorized: true }) };
+    
+    if (isMainAccount && event.Kind === "LkpHostCertAuthorizationRequest") authorized();
 
     if (isMainAccount && event.From.Name === 'aidan.steele@glassechidna.com.au') authorized(); // aidan is all powerful
 
