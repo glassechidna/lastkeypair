@@ -23,7 +23,7 @@ script:
 
 before_deploy:
   - make otherplats
-  - upx-3.93-amd64_linux/upx lastkeypair_{linux_amd64,windows_amd64.exe} # upx 3.93 creates buggy darwin exes, fixed in unreleased 3.94
+  - upx-3.94-amd64_linux/upx lastkeypair_*
 
 deploy:
   provider: releases
