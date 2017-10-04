@@ -31,7 +31,7 @@ type AuthorizationLambdaRequest struct {
 
 type AuthorizationLambdaResponse struct {
 	Authorized bool
-	Jumpbox *Jumpbox `json:",omitempty"`
+	Jumpboxes []Jumpbox `json:",omitempty"`
 	CertificateOptions struct {
 		ForceCommand *string `json:",omitempty"`
 		SourceAddress *string `json:",omitempty"`

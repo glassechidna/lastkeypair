@@ -17,7 +17,7 @@ type HostCertReqJson struct {
 
 type UserCertRespJson struct {
 	SignedPublicKey string
-	Jumpbox *Jumpbox `json:",omitempty"`
+	Jumpboxes []Jumpbox `json:",omitempty"`
 	Expiry int64
 }
 

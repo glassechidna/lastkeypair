@@ -40,11 +40,10 @@ interface LkpAuthorizationRequest {
 
 interface LkpAuthorizationResponse {
     Authorized: boolean;
-    Jumpbox?: { 
-        InstanceId: string; // LKP uses instance ids as principals for trusted hosts
+    Jumpboxes?: { 
         Address: string; // ip/domain that user should use as bastion host
         User: string; // linux user on jumpbox
-    };
+    }[];
     CertificateOptions?: { // as per https://man.openbsd.org/ssh-keygen#O
         ForceCommand?: string;
         SourceAddress?: string;
