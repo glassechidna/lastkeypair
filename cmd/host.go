@@ -76,6 +76,10 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 
 	ident, err := common.CallerIdentityUser(sess)
 	instanceArn, err := getInstanceArn(client)
+	if err != nil {
+		return errors.Wrap(err, "fetching instance arn from metadata service")
+	}
+
 	token, err := hostCertToken(sess, *ident, kmsKeyId, funcIdentity, *instanceArn)
 
 	caPubkey, err := client.GetMetadata("public-keys/0/openssh-key")
