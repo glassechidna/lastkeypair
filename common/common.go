@@ -127,6 +127,7 @@ type TokenParams struct {
 }
 
 func (params *TokenParams) ToKmsContext() map[string]*string {
+	// TODO: i think this is a recipe for problems. see issue #24
 	iterateParams := func(p *TokenParams, cb func(string, *string)) {
 		cb("fromId", &p.FromId)
 		cb("fromAccount", &p.FromAccount)
