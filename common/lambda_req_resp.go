@@ -1,6 +1,9 @@
 package common
 
 type UserCertReqJson struct {
+	// NOTE: be very careful of adding new fields to this struct. only fields
+	// inside Token.TokenParams are part of the encryption context (and hence
+	// logged in cloudtrail)
 	EventType string
 	Token Token
 	PublicKey string
