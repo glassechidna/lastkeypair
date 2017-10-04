@@ -33,8 +33,9 @@ to quickly create a Cobra application.`,
 		functionName, _ := cmd.PersistentFlags().GetString("lambda-name")
 		kmsKeyId, _ := cmd.PersistentFlags().GetString("kms-key")
 		funcIdentity, _ := cmd.PersistentFlags().GetString("func-identity")
+		principals, _ := cmd.PersistentFlags().GetStringSlice("principal")
 
-		err := doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId, funcIdentity)
+		err := doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId, funcIdentity, principals)
 		if err != nil {
 			log.Panicf("err: %s\n", err.Error())
 		}
@@ -64,7 +65,7 @@ func hostSession() (*session.Session, error) {
 	return sess, nil
 }
 
-func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId, funcIdentity string) error {
+func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId, funcIdentity string, principals []string) error {
 	hostKeyBytes, err := ioutil.ReadFile(hostKeyPath)
 	if err != nil {
 		return errors.Wrap(err, "reading ssh host key")
@@ -80,7 +81,8 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 		return errors.Wrap(err, "fetching instance arn from metadata service")
 	}
 
-	token, err := hostCertToken(sess, *ident, kmsKeyId, funcIdentity, *instanceArn)
+	principals = append(principals, *instanceArn)
+	token, err := hostCertToken(sess, *ident, kmsKeyId, funcIdentity, *instanceArn, principals)
 
 	caPubkey, err := client.GetMetadata("public-keys/0/openssh-key")
 	if err != nil {
@@ -142,13 +144,14 @@ func getInstanceArn(client *ec2metadata.EC2Metadata) (*string, error) {
 
 }
 
-func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, funcIdentity, instanceArn string) (*common.Token, error) {
+func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, funcIdentity, instanceArn string, principals []string) (*common.Token, error) {
 	params := common.TokenParams{
 		FromId:          ident.UserId,
 		FromAccount:     ident.AccountId,
 		To:              funcIdentity,
 		Type:            "AssumedRole",
 		HostInstanceArn: instanceArn,
+		Principals: principals,
 	}
 
 	ret := common.CreateToken(sess, params, kmsKeyId)
@@ -179,5 +182,6 @@ func init() {
 	hostCmd.PersistentFlags().String("sshd-config-path", "/etc/ssh/sshd_config", "")
 	hostCmd.PersistentFlags().String("lambda-name", "LastKeypair", "")
 	hostCmd.PersistentFlags().String("func-identity", "LastKeypair", "")
+	hostCmd.PersistentFlags().StringSliceP("principal", "p", []string{""}, "Additional principals to request from CA")
 	hostCmd.PersistentFlags().String("kms-key", "alias/LastKeypair", "ID, ARN or alias of KMS key for auth to CA")
 }
