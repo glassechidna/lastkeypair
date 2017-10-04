@@ -47,7 +47,8 @@ func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, insta
 		PublicKey: string(kp.PublicKey),
 	}
 
-	signed, err := RequestSignedCert(sess, lambdaFunc, req)
+	signed := UserCertRespJson{}
+	err = RequestSignedPayload(sess, lambdaFunc, req, &signed)
 	if err != nil {
 		log.Panicf("err: %s", err.Error())
 	}
@@ -80,12 +81,12 @@ func lambdaClientForKeyId(sess *session.Session, lambdaArn string) *lambda.Lambd
 	return lambda.New(sess)
 }
 
-func RequestSignedCert(sess *session.Session, lambdaArn string, req UserCertReqJson) (*UserCertRespJson, error) {
+func RequestSignedPayload(sess *session.Session, lambdaArn string, req interface{}, resp interface{}) error {
 	ca := lambdaClientForKeyId(sess, lambdaArn)
 
 	reqPayload, err := json.Marshal(&req)
 	if err != nil {
-		return nil, errors.Wrap(err, "marshalling lambda req payload")
+		return errors.Wrap(err, "marshalling lambda req payload")
 	}
 
 	input := lambda.InvokeInput{
@@ -93,43 +94,15 @@ func RequestSignedCert(sess *session.Session, lambdaArn string, req UserCertReqJ
 		Payload: reqPayload,
 	}
 
-	resp, err := ca.Invoke(&input)
+	lambdaResp, err := ca.Invoke(&input)
 	if err != nil {
-		return nil, errors.Wrap(err, "invoking CA lambda")
+		return errors.Wrap(err, "invoking CA lambda")
 	}
 
-	payload := UserCertRespJson{}
-	err = json.Unmarshal(resp.Payload, &payload)
+	err = json.Unmarshal(lambdaResp.Payload, resp)
 	if err != nil {
-		return nil, errors.Wrap(err, "unmarshalling lambda resp payload")
+		return errors.Wrap(err, "unmarshalling lambda resp payload")
 	}
 
-	return &payload, nil
-}
-
-func RequestSignedHostCert(sess *session.Session, lambdaArn string, req HostCertReqJson) (*HostCertRespJson, error) {
-	payload, err := json.Marshal(&req)
-	if err != nil {
-		return nil, errors.Wrap(err, "couldn't serialise host cert req json")
-	}
-
-	client := lambdaClientForKeyId(sess, lambdaArn)
-
-	input := lambda.InvokeInput{
-		FunctionName: aws.String(lambdaArn),
-		Payload: payload,
-	}
-
-	resp, err := client.Invoke(&input)
-	if err != nil {
-		return nil, errors.Wrap(err, "invoking CA lambda")
-	}
-
-	response := HostCertRespJson{}
-	err = json.Unmarshal(resp.Payload, &response)
-	if err != nil {
-		return nil, errors.Wrap(err, "unmarshalling lambda resp payload")
-	}
-
-	return &response, nil
+	return nil
 }

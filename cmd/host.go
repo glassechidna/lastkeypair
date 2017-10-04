@@ -83,11 +83,12 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 		return errors.Wrap(err, "fetching ssh CA key")
 	}
 
-	response, err := common.RequestSignedHostCert(sess, functionName, common.HostCertReqJson{
+	response := common.HostCertRespJson{}
+	err = common.RequestSignedPayload(sess, functionName, common.HostCertReqJson{
 		EventType: "HostCertReq",
 		Token: *token,
 		PublicKey: hostKey,
-	})
+	}, &response)
 	if err != nil {
 		return errors.Wrap(err, "requesting signed host key")
 	}
