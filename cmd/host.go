@@ -88,6 +88,9 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 		Token: *token,
 		PublicKey: hostKey,
 	})
+	if err != nil {
+		return errors.Wrap(err, "requesting signed host key")
+	}
 
 	err = ioutil.WriteFile(signedHostKeyPath, []byte(response.SignedHostPublicKey), 0600)
 	if err != nil {
