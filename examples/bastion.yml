@@ -1,0 +1,167 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  LoadBalancerSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  BastionSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  InstanceCount:
+    Type: Number
+  AmiId: # any amazon linux should work with the userdata in this template
+    Type: AWS::EC2::Image::Id
+  InstanceType:
+    Type: String
+    Default: t2.nano
+  InstanceProfile:  # either specify an existing instance profile or leave as default "create"
+    Type: String    # for cfn to create one on your behalf. created role/profile will have permission
+    Default: create # to call kms key and lambda func specified elsewhere in parameters. note that this
+                    # isn't necessary in case key policy and lambda func policy grant access
+  KeypairName: # keypair of LKP-managed cert authority pubkey
+    Type: AWS::EC2::KeyPair::KeyName
+  LkpKeyArn: # needs to be ARN as it's used in IAM role policy
+    Type: String
+    AllowedPattern: ^arn:aws:kms:[a-z0-9]+:[0-9]+:key/.+$
+  LkpLambdaArn: # needs to be ARN as it's used in IAM role policy
+    Type: String
+    AllowedPattern: ^arn:aws:lambda:[a-z0-9]+:[0-9]+:function:.+$
+  Scheme:
+    Type: String
+    Default: internet-facing
+    AllowedValues:
+      - internet-facing
+      - internal
+  LastKeypairVersion:
+    Type: String
+    Default: "0.0.4"
+  Subdomain:
+    Type: String
+  HostedZoneName: # should _NOT_ have trailing dot
+    Type: String
+Conditions:
+  CreateProfile: !Equals [!Ref InstanceProfile, create]
+Resources:
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: !Ref Scheme
+      Subnets: !Ref LoadBalancerSubnetIds
+      Type: network
+      Tags:
+        - Key: Name
+          Value: LastKeypair-managed SSH bastion
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Protocol: TCP
+      Port: 22
+      LoadBalancerArn: !Ref LoadBalancer
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+  RecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: !Sub ${HostedZoneName}.
+      Name: !Sub ${Subdomain}.${HostedZoneName}
+      Type: A
+      AliasTarget:
+        HostedZoneId: !GetAtt LoadBalancer.CanonicalHostedZoneID
+        DNSName: !GetAtt LoadBalancer.DNSName
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 22
+      Protocol: TCP
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: LastKeypair-managed SSH bastion
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      AssociatePublicIpAddress: true
+      IamInstanceProfile: !If [CreateProfile, !Ref CreatedInstanceProfile, !Ref InstanceProfile]
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeypairName
+      SecurityGroups: [!Ref InstanceSecurityGroup]
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euxo pipefail
+
+          curl -L -o lkp https://github.com/glassechidna/lastkeypair/releases/download/${LastKeypairVersion}/lastkeypair_linux_amd64
+          chmod +x lkp
+          ./lkp host --lambda-name ${LkpLambdaArn} --kms-key ${LkpKeyArn} -p ${LoadBalancer.DNSName} -p ${RecordSet} # there are several more flags you can pass in here
+          service sshd restart # This is correct for Amazon Linux, can be different on other distros
+          rm lkp
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: !Ref BastionSubnetIds
+      DesiredCapacity: !Ref InstanceCount
+      MaxSize: !Ref InstanceCount
+      MinSize: !Ref InstanceCount
+      LaunchConfigurationName: !Ref LaunchConfiguration
+      TargetGroupARNs: [!Ref TargetGroup]
+      Tags:
+        - Key: Name
+          Value: LastKeypair-managed SSH bastion
+          PropagateAtLaunch: true
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MinInstancesInService: 1
+        MaxBatchSize: 3
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: LastKeypair-managed SSH bastion
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: LastKeypair-managed SSH bastion
+  Role:
+    Type: AWS::IAM::Role
+    Condition: CreateProfile
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+      Policies:
+        - PolicyName: AllowLkpHostKeyCreation
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action: kms:Encrypt
+                Effect: Allow
+                Resource: !Ref LkpKeyArn
+              - Action: lambda:InvokeFunction
+                Effect: Allow
+                Resource: !Ref LkpLambdaArn
+  CreatedInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Condition: CreateProfile
+    Properties:
+      Roles: [!Ref Role]
+Outputs:
+  LoadBalancerDNSName:
+    Description: DNS for load balancer
+    Value: !GetAtt LoadBalancer.DNSName
+  LoadBalancerCanonicalHostedZoneID:
+    Description: Route 53 HostedZoneId for NLB
+    Value: !GetAtt LoadBalancer.CanonicalHostedZoneID
+  AutoScalingGroup:
+    Value: !Ref AutoScalingGroup
+  BastionDomain:
+    Value: !Ref RecordSet
