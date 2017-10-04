@@ -40,6 +40,7 @@ interface LkpAuthorizationRequest {
 
 interface LkpAuthorizationResponse {
     Authorized: boolean;
+    Principals: string[]; // LKP uses instance ARNs as principals for trusted hosts
     Jumpboxes?: { 
         Address: string; // ip/domain that user should use as bastion host
         User: string; // linux user on jumpbox

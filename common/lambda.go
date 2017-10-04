@@ -180,11 +180,6 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 		return nil, errors.New("authorisation denied by auth lambda")
 	}
 
-	principals := []string{instanceArn}
-	if auth.Jumpbox != nil {
-		principals = append(principals, auth.Jumpbox.InstanceId)
-	}
-
 	permissions := DefaultSshPermissions
 	if auth.CertificateOptions.ForceCommand != nil {
 		permissions.Extensions["force-command"] = *auth.CertificateOptions.ForceCommand
@@ -200,7 +195,7 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 		uint64(time.Now().Unix() + config.ValidityDuration),
 		DefaultSshPermissions,
 		identity,
-		principals,
+		auth.Principals,
 	)
 
 	if err != nil {

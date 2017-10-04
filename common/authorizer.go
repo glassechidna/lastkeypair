@@ -31,6 +31,7 @@ type AuthorizationLambdaRequest struct {
 
 type AuthorizationLambdaResponse struct {
 	Authorized bool
+	Principals []string
 	Jumpboxes []Jumpbox `json:",omitempty"`
 	CertificateOptions struct {
 		ForceCommand *string `json:",omitempty"`
@@ -40,7 +41,10 @@ type AuthorizationLambdaResponse struct {
 
 func DoAuthorizationLambda(userReq UserCertReqJson, config LambdaConfig) (*AuthorizationLambdaResponse, error) {
 	if len(config.AuthorizationLambda) == 0 {
-		return &AuthorizationLambdaResponse{Authorized: true}, nil
+		return &AuthorizationLambdaResponse{
+			Authorized: true,
+			Principals: []string{userReq.Token.Params.RemoteInstanceArn},
+		}, nil
 	}
 
 	client := lambda.New(LambdaAwsSession())
