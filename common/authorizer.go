@@ -152,7 +152,7 @@ func (a *AuthorizationLambda) DoHostReq(hostReq HostCertReqJson) (*LkpHostCertAu
 		Kind:            "LkpHostCertAuthorizationRequest",
 		From:            tokenParamsToAuthLambdaIdentity(p),
 		HostInstanceArn: hostArn,
-		Principals:      []string{p.RemoteInstanceArn},
+		Principals:      p.Principals,
 	}
 
 	authResp := LkpHostCertAuthorizationResponse{}
