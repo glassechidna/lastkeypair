@@ -22,7 +22,7 @@ type UserCertRespJson struct {
 }
 
 type Jumpbox struct {
-	IpAddress  string
+	Address    string
 	User       string
 }
 

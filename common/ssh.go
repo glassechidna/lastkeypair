@@ -63,7 +63,7 @@ func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, insta
 	}
 
 	if signed.Jumpbox != nil {
-		proxyCommand := fmt.Sprintf("ProxyCommand='ssh -W %%h:%%p %s@%s'", signed.Jumpbox.User, signed.Jumpbox.IpAddress)
+		proxyCommand := fmt.Sprintf("ProxyCommand='ssh -W %%h:%%p %s@%s'", signed.Jumpbox.User, signed.Jumpbox.Address)
 		lkpArgs = append(lkpArgs, "-o", proxyCommand)
 	}
 
