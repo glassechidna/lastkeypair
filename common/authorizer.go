@@ -25,6 +25,7 @@ type AuthorizationLambdaVoucher struct {
 type AuthorizationLambdaRequest struct {
 	From AuthorizationLambdaIdentity
 	RemoteInstanceArn string
+	SshUsername string
 	Vouchers []AuthorizationLambdaVoucher `json:",omitempty"`
 }
 
@@ -53,6 +54,7 @@ func DoAuthorizationLambda(userReq UserCertReqJson, config LambdaConfig) (*Autho
 			Type: p.Type,
 		},
 		RemoteInstanceArn: p.RemoteInstanceArn,
+		SshUsername: userReq.Token.Params.SshUsername,
 	}
 
 	for _, v := range p.Vouchers {

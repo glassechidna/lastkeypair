@@ -34,6 +34,7 @@ type LkpVoucher = LkpIdentity & {
 interface LkpAuthorizationRequest {
     From: LkpIdentity;
     RemoteInstanceArn: string; // instance ARN that user is requesting access to
+    SshUsername: string;
     Vouchers?: LkpVoucher[];
 }
 

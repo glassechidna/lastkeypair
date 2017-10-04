@@ -38,12 +38,12 @@ func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, insta
 		Type: ident.Type,
 		RemoteInstanceArn: instanceArn,
 		Vouchers: vouchers,
+		SshUsername: username,
 	}, kmsKeyId)
 
 	req := UserCertReqJson{
 		EventType: "UserCertReq",
 		Token: token,
-		SshUsername: username,
 		PublicKey: string(kp.PublicKey),
 	}
 

@@ -3,7 +3,6 @@ package common
 type UserCertReqJson struct {
 	EventType string
 	Token Token
-	SshUsername string
 	PublicKey string
 }
 

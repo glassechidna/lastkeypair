@@ -123,6 +123,7 @@ type TokenParams struct {
 	HostInstanceArn   string `json:",omitempty"` // this field is for when an instance is requesting a host cert
 	RemoteInstanceArn string `json:",omitempty"` // this field is for when a user is requesting a user cert for a specific host
 
+	SshUsername string `json:",omitempty"` // username on remote instance that user wants to access
 }
 
 func (params *TokenParams) ToKmsContext() map[string]*string {
@@ -142,6 +143,10 @@ func (params *TokenParams) ToKmsContext() map[string]*string {
 
 		if len(p.RemoteInstanceArn) > 0 {
 			cb("remoteInstanceArn", &p.RemoteInstanceArn)
+		}
+
+		if len(p.SshUsername) > 0 {
+			cb("sshUsername", &p.SshUsername)
 		}
 
 		if len(p.Vouchee) > 0 {
