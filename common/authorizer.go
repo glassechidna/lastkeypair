@@ -18,11 +18,12 @@ type authorizationLambdaVoucher struct {
 	Id      string
 	Account string
 	Type    string
-	Vouchee	string
+	Vouchee string
 	Context string
 }
 
 type LkpUserCertAuthorizationRequest struct {
+	Kind              string
 	From              authorizationLambdaIdentity
 	RemoteInstanceArn string
 	SshUsername       string
@@ -33,14 +34,15 @@ type LkpUserCertAuthorizationRequest struct {
 type LkpUserCertAuthorizationResponse struct {
 	Authorized bool
 	Principals []string
-	Jumpboxes []Jumpbox `json:",omitempty"`
+	Jumpboxes  []Jumpbox `json:",omitempty"`
 	CertificateOptions struct {
-		ForceCommand *string `json:",omitempty"`
+		ForceCommand  *string `json:",omitempty"`
 		SourceAddress *string `json:",omitempty"`
 	}
 }
 
 type LkpHostCertAuthorizationRequest struct {
+	Kind            string
 	From            authorizationLambdaIdentity
 	HostInstanceArn string
 	Principals      []string
@@ -48,7 +50,7 @@ type LkpHostCertAuthorizationRequest struct {
 
 type LkpHostCertAuthorizationResponse struct {
 	Authorized bool
-	KeyId string
+	KeyId      string
 	Principals []string
 }
 
@@ -70,7 +72,7 @@ func (a *AuthorizationLambda) doLambda(req interface{}, resp interface{}) error 
 
 	input := &lambda.InvokeInput{
 		FunctionName: &a.config.AuthorizationLambda,
-		Payload: encoded,
+		Payload:      encoded,
 	}
 
 	lambdaResp, err := client.Invoke(input)
@@ -88,10 +90,10 @@ func (a *AuthorizationLambda) doLambda(req interface{}, resp interface{}) error 
 
 func tokenParamsToAuthLambdaIdentity(p TokenParams) authorizationLambdaIdentity {
 	return authorizationLambdaIdentity{
-		Name: &p.FromName,
-		Id: p.FromId,
+		Name:    &p.FromName,
+		Id:      p.FromId,
 		Account: p.FromAccount,
-		Type: p.Type,
+		Type:    p.Type,
 	}
 }
 
@@ -105,19 +107,20 @@ func (a *AuthorizationLambda) DoUserReq(userReq UserCertReqJson) (*LkpUserCertAu
 
 	p := userReq.Token.Params
 	req := LkpUserCertAuthorizationRequest{
-		From: tokenParamsToAuthLambdaIdentity(p),
+		Kind:              "LkpUserCertAuthorizationRequest",
+		From:              tokenParamsToAuthLambdaIdentity(p),
 		RemoteInstanceArn: p.RemoteInstanceArn,
-		SshUsername: userReq.Token.Params.SshUsername,
-		Principals: []string{p.RemoteInstanceArn},
+		SshUsername:       userReq.Token.Params.SshUsername,
+		Principals:        []string{p.RemoteInstanceArn},
 	}
 
 	for _, v := range p.Vouchers {
 		vp := v.Params
 		voucher := authorizationLambdaVoucher{
-			Name: &vp.FromName,
-			Id: vp.FromId,
+			Name:    &vp.FromName,
+			Id:      vp.FromId,
 			Account: vp.FromAccount,
-			Type: vp.Type,
+			Type:    vp.Type,
 			Vouchee: vp.Vouchee,
 			Context: vp.Context,
 		}
@@ -133,23 +136,23 @@ func (a *AuthorizationLambda) DoUserReq(userReq UserCertReqJson) (*LkpUserCertAu
 	return &authResp, nil
 }
 
-
 func (a *AuthorizationLambda) DoHostReq(hostReq HostCertReqJson) (*LkpHostCertAuthorizationResponse, error) {
 	hostArn := hostReq.Token.Params.HostInstanceArn
 
 	if len(a.config.AuthorizationLambda) == 0 {
 		return &LkpHostCertAuthorizationResponse{
 			Authorized: true,
-			KeyId: hostArn,
+			KeyId:      hostArn,
 			Principals: []string{hostArn},
 		}, nil
 	}
 
 	p := hostReq.Token.Params
 	req := LkpHostCertAuthorizationRequest{
-		From: tokenParamsToAuthLambdaIdentity(p),
+		Kind:            "LkpHostCertAuthorizationRequest",
+		From:            tokenParamsToAuthLambdaIdentity(p),
 		HostInstanceArn: hostArn,
-		Principals: []string{p.RemoteInstanceArn},
+		Principals:      []string{p.RemoteInstanceArn},
 	}
 
 	authResp := LkpHostCertAuthorizationResponse{}
