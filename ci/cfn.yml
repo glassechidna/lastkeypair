@@ -22,6 +22,8 @@ Parameters:
     Default: false
   AllowedAwsAccounts:
     Type: String
+  JumpboxDns:
+    Type: String
 Conditions:
   MFARequired: !Equals [!Ref MFARequired, "true"]
 Resources:
@@ -146,6 +148,9 @@ Resources:
       Role: !GetAtt LambdaRole.Arn
       Runtime: nodejs6.10
       Timeout: 60
+      Environment:
+        Variables:
+          JUMPBOX_DNS: !Ref JumpboxDns
       Code:
         ZipFile: |
           exports.handler = function(event, context, callback) {
@@ -169,18 +174,18 @@ Resources:
             } else if (event.Vouchers && event.Vouchers.length > 0) {
               cb(null, {
                 authorized: true,
-                principals: ["abcdef"],
+                principals: [event.RemoteInstanceArn, process.env.JUMPBOX_DNS],
                 jumpboxes: [{
-                  address: "12.34.56.78",
+                  address: process.env.JUMPBOX_DNS,
                   user: event.Vouchers[0].Name // really just for testing purposes
                 }]
               });
             } else {
               cb(null, {
                 authorized: true,
-                principals: ["abcdef"],
+                principals: [event.RemoteInstanceArn, process.env.JUMPBOX_DNS],
                 jumpboxes: [{
-                  address: "12.34.56.78",
+                  address: process.env.JUMPBOX_DNS,
                   user: "ec2-user"
                 }]
               });
