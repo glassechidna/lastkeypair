@@ -93,7 +93,11 @@ Resources:
 
           curl -L -o lkp https://github.com/glassechidna/lastkeypair/releases/download/${LastKeypairVersion}/lastkeypair_linux_amd64
           chmod +x lkp
-          ./lkp host --lambda-name ${LkpLambdaArn} --kms-key ${LkpKeyArn} -p ${LoadBalancer.DNSName} -p ${RecordSet} # there are several more flags you can pass in here
+          ./lkp host \ # there are several more flags you can pass in here
+            --lambda-name ${LkpLambdaArn} \
+            --kms-key ${LkpKeyArn} \
+            -p ${LoadBalancer.DNSName} \
+            -p ${RecordSet} # we add the domain names as additional principals as otherwise the ssh client will reject the host cert
           service sshd restart # This is correct for Amazon Linux, can be different on other distros
           rm lkp
   AutoScalingGroup:
