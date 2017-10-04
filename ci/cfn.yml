@@ -154,6 +154,10 @@ Resources:
               console.log(JSON.stringify(resp));
               callback(err, resp);
             }
+            if (event.Kind === "LkpUserCertAuthorizationRequest") {
+              cb(null, {authorized: false});
+              return;
+            }
             if (event.RemoteInstanceArn == "abcdef") {
               cb(null, {
                 authorized: true,
