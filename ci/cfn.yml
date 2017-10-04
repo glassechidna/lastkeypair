@@ -155,24 +155,27 @@ Resources:
               callback(err, resp);
             }
             if (event.RemoteInstanceArn == "abcdef") {
-              cb(null, {authorized: true});
+              cb(null, {
+                authorized: true,
+                principals: [event.RemoteInstanceArn]
+              });
             } else if (event.Vouchers && event.Vouchers.length > 0) {
               cb(null, {
                 authorized: true,
-                jumpbox: {
-                  ipAddress: "12.34.56.78",
-                  instanceId: "abcdef",
+                principals: ["abcdef"],
+                jumpboxes: [{
+                  address: "12.34.56.78",
                   user: event.Vouchers[0].Name // really just for testing purposes
-                }
+                }]
               });
             } else {
               cb(null, {
                 authorized: true,
-                jumpbox: {
-                  ipAddress: "12.34.56.78",
-                  instanceId: "abcdef",
+                principals: ["abcdef"],
+                jumpboxes: [{
+                  address: "12.34.56.78",
                   user: "ec2-user"
-                }
+                }]
               });
             }
           };
