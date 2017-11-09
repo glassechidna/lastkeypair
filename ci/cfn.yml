@@ -44,21 +44,25 @@ Resources:
           - Sid: KmsDescribe
             Effect: Allow
             Principal:
-              AWS: !Split [",", !Ref AllowedAwsAccounts]
+              AWS: "*" # we use kms:CallerAccount condition key instead
             Action: kms:DescribeKey
             Resource: "*"
+            Condition:
+              StringEquals:
+                kms:CallerAccount: !Split [",", !Ref AllowedAwsAccounts]
           - Sid: AllowIAMUserEncrypt
             Effect: Allow
             Principal:
-              AWS: !Split [",", !Ref AllowedAwsAccounts]
+              AWS: "*"
             Action: kms:Encrypt
-            Resource: "*"
+            Resource: "*" # we use kms:CallerAccount condition key instead
             Condition:
               StringEquals:
                 kms:EncryptionContext:to: !Ref FunctionKmsAuthName
                 kms:EncryptionContext:type: "${aws:principaltype}"
                 kms:EncryptionContext:fromId: "${aws:userid}"
                 kms:EncryptionContext:fromAccount: "${kms:CallerAccount}"
+                kms:CallerAccount: !Split [",", !Ref AllowedAwsAccounts]
               StringEqualsIfExists:
                 aws:username: "${kms:EncryptionContext:fromName}"
                 kms:EncryptionContext:fromName: "${aws:username}"
