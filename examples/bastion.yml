@@ -38,6 +38,9 @@ Parameters:
     Type: String
   HostedZoneName: # should _NOT_ have trailing dot
     Type: String
+  SshAllowedCidr:
+    Type: String
+    Default: 0.0.0.0/0
 Conditions:
   CreateProfile: !Equals [!Ref InstanceProfile, create]
 Resources:
@@ -126,7 +129,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: 0.0.0.0/0
+          CidrIp: !Ref SshAllowedCidr
       Tags:
         - Key: Name
           Value: LastKeypair-managed SSH bastion
