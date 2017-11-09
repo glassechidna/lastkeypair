@@ -147,9 +147,6 @@ Resources:
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
-              - Action: kms:Encrypt
-                Effect: Allow
-                Resource: !Ref LkpKeyArn
               - Action: lambda:InvokeFunction
                 Effect: Allow
                 Resource: !Ref LkpLambdaArn

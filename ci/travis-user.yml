@@ -52,7 +52,6 @@ Resources:
               - Effect: Allow
                 Action:
                   - kms:DescribeKey # for cfn.yml stack updates
-                  - kms:Encrypt # to actually use this thing
                 Resource: !Ref KeyArn
               - Effect: Allow
                 Action: sts:GetCallerIdentity
