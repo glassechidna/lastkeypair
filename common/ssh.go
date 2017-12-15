@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"fmt"
 	"strings"
-	"os"
 )
 
 func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, instanceArn, username string, encodedVouchers, args []string) []string {
@@ -64,14 +63,12 @@ func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, insta
 	}
 
 	if len(signed.Jumpboxes) > 0 {
-		if len(signed.Jumpboxes) > 1 {
-			fmt.Fprintln(os.Stderr, "Lastkeypair doesn't yet support multiple jumpboxes")
+		jumps := []string{}
+		for _, jbox := range signed.Jumpboxes {
+			jumps = append(jumps, fmt.Sprintf("%s@%s", jbox.User, jbox.Address))
 		}
-
-		jbox := signed.Jumpboxes[0]
-		sprintf := fmt.Sprintf("ProxyCommand='ssh -W %%h:%%p %s@%s'", jbox.User, jbox.Address)
-		proxyCommand := sprintf
-		lkpArgs = append(lkpArgs, "-o", proxyCommand)
+		joinedJumps := strings.Join(jumps, ",")
+		lkpArgs = append(lkpArgs, "-J", joinedJumps)
 	}
 
 	args = append(lkpArgs, args...)
