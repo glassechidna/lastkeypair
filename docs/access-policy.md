@@ -44,6 +44,8 @@ interface LkpUserCertAuthorizationRequest {
 interface LkpUserCertAuthorizationResponse {
     Authorized: boolean;
     Principals: string[]; // LKP uses instance ARNs as principals for trusted hosts
+                          // if this key is absent, it will default to permitting
+                          // the requested RemoteInstanceArn
     Jumpboxes?: { 
         Address: string; // ip/domain that user should use as bastion host
         User: string; // linux user on jumpbox

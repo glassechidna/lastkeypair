@@ -27,7 +27,6 @@ type LkpUserCertAuthorizationRequest struct {
 	From              authorizationLambdaIdentity
 	RemoteInstanceArn string
 	SshUsername       string
-	Principals        []string
 	Vouchers          []authorizationLambdaVoucher `json:",omitempty"`
 }
 
@@ -111,7 +110,6 @@ func (a *AuthorizationLambda) DoUserReq(userReq UserCertReqJson) (*LkpUserCertAu
 		From:              tokenParamsToAuthLambdaIdentity(p),
 		RemoteInstanceArn: p.RemoteInstanceArn,
 		SshUsername:       userReq.Token.Params.SshUsername,
-		Principals:        []string{p.RemoteInstanceArn},
 	}
 
 	for _, v := range p.Vouchers {
@@ -131,6 +129,11 @@ func (a *AuthorizationLambda) DoUserReq(userReq UserCertReqJson) (*LkpUserCertAu
 	err := a.doLambda(req, &authResp)
 	if err != nil {
 		return nil, errors.Wrap(err, "invoking user cert authorisation lambda")
+	}
+
+	// if the lambda's response is missing the "Principals" key, default to the requested instance
+	if authResp.Principals == nil {
+		authResp.Principals = []string{p.RemoteInstanceArn}
 	}
 
 	return &authResp, nil
