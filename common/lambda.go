@@ -83,9 +83,14 @@ func LambdaHandle(evt json.RawMessage, ctx *runtime.Context) (interface{}, error
 
 	validity, err := strconv.ParseInt(os.Getenv("VALIDITY_DURATION"), 10, 64)
 
+	kmsTokenIdentity := os.Getenv("KMS_TOKEN_IDENTITY")
+	if len(kmsTokenIdentity) == 0 {
+		kmsTokenIdentity = "LastKeypair"
+	}
+
 	config := LambdaConfig{
 		KeyId: os.Getenv("KMS_KEY_ID"),
-		KmsTokenIdentity: os.Getenv("KMS_TOKEN_IDENTITY"),
+		KmsTokenIdentity: kmsTokenIdentity,
 		CaKeyBytes: caKeyBytes,
 		CaKeyPassphraseBytes: caKeyPassphraseBytes,
 		ValidityDuration: validity,
