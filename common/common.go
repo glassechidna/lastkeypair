@@ -32,8 +32,16 @@ var DefaultSshPermissions = ssh.Permissions{
 	},
 }
 
-func SignSsh(caKeyBytes, pubkeyBytes []byte, certType uint32, expiry uint64, permissions ssh.Permissions, keyId string, principals []string) (*string, error) {
-	signer, err := ssh.ParsePrivateKey(caKeyBytes)
+func SignSsh(caKeyBytes, sshKeyPassphrase, pubkeyBytes []byte, certType uint32, expiry uint64, permissions ssh.Permissions, keyId string, principals []string) (*string, error) {
+	var signer ssh.Signer
+	var err error
+
+	if len(sshKeyPassphrase) > 0 {
+		signer, err = ssh.ParsePrivateKeyWithPassphrase(caKeyBytes, sshKeyPassphrase)
+	} else {
+		signer, err = ssh.ParsePrivateKey(caKeyBytes)
+	}
+
 	if err != nil {
 		return nil, errors.Wrap(err, "err parsing ca priv key")
 	}

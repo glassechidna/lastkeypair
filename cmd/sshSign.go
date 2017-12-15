@@ -22,6 +22,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		caKeyPath, _ := cmd.PersistentFlags().GetString("ca-key-path")
+		caKeyPassphrase, _ := cmd.PersistentFlags().GetString("ca-key-passphrase")
 		userKeyPath, _ := cmd.PersistentFlags().GetString("user-key-path")
 		keyId, _ := cmd.PersistentFlags().GetString("key-id")
 		duration, _ := cmd.PersistentFlags().GetInt64("duration")
@@ -32,6 +33,7 @@ to quickly create a Cobra application.`,
 
 		formatted, err := common.SignSsh(
 			keyBytes,
+			[]byte(caKeyPassphrase),
 			userPubkeyBytes,
 			ssh.UserCert,
 			uint64(time.Now().Unix() + duration),
@@ -52,6 +54,7 @@ func init() {
 	sshCmd.AddCommand(sshSignCmd)
 
 	sshSignCmd.PersistentFlags().String("ca-key-path", "", "")
+	sshSignCmd.PersistentFlags().String("ca-key-passphrase", "", "")
 	sshSignCmd.PersistentFlags().String("user-key-path", "", "")
 	sshSignCmd.PersistentFlags().String("key-id", "", "")
 	sshSignCmd.PersistentFlags().Int64("duration", 3600, "")

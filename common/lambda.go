@@ -22,14 +22,15 @@ type LambdaConfig struct {
 	KeyId string
 	KmsTokenIdentity string
 	CaKeyBytes []byte
+	CaKeyPassphraseBytes []byte
 	ValidityDuration int64
 	AuthorizationLambda string
 }
 
-func getCaKeyBytes() ([]byte, error) {
-	var caKeyBytes []byte
+func getPstoreOrKmsOrRawBytes(name string) ([]byte, error) {
+	var bytes []byte
 
-	if pstoreName, found := os.LookupEnv("PSTORE_CA_KEY_BYTES"); found {
+	if pstoreName, found := os.LookupEnv(fmt.Sprintf("PSTORE_%s", name)); found {
 		ssmClient := ssm.New(session.New())
 		ssmInput := &ssm.GetParametersInput{
 			Names: aws.StringSlice([]string{pstoreName}),
@@ -42,8 +43,8 @@ func getCaKeyBytes() ([]byte, error) {
 		}
 
 		valstr := ssmResp.Parameters[0].Value
-		caKeyBytes = []byte(*valstr)
-	} else if kmsEncrypted, found := os.LookupEnv("KMS_B64_CA_KEY_BYTES"); found {
+		bytes = []byte(*valstr)
+	} else if kmsEncrypted, found := os.LookupEnv(fmt.Sprintf("KMS_B64_%s", name)); found {
 		kmsClient := kms.New(session.New())
 
 		b64dec, err := base64.StdEncoding.DecodeString(kmsEncrypted)
@@ -57,18 +58,25 @@ func getCaKeyBytes() ([]byte, error) {
 			return nil, errors.Wrap(err, "decrypting kms-encrypted ca key bytes")
 		}
 
-		caKeyBytes = kmsResp.Plaintext
-	} else if raw, found := os.LookupEnv("CA_KEY_BYTES"); found {
-		caKeyBytes = []byte(raw)
+		bytes = kmsResp.Plaintext
+	} else if raw, found := os.LookupEnv(name); found {
+		bytes = []byte(raw)
 	} else {
-		return nil, errors.New("no ca key bytes provided")
+		return nil, nil
 	}
 
-	return caKeyBytes, nil
+	return bytes, nil
 }
 
 func LambdaHandle(evt json.RawMessage, ctx *runtime.Context) (interface{}, error) {
-	caKeyBytes, err := getCaKeyBytes()
+	caKeyBytes, err := getPstoreOrKmsOrRawBytes("CA_KEY_BYTES")
+	if err != nil {
+		return nil, err
+	} else if caKeyBytes == nil {
+		return nil, errors.New("no ca key bytes provided")
+	}
+
+	caKeyPassphraseBytes, err := getPstoreOrKmsOrRawBytes("CA_KEY_PASSPHRASE_BYTES")
 	if err != nil {
 		return nil, err
 	}
@@ -79,6 +87,7 @@ func LambdaHandle(evt json.RawMessage, ctx *runtime.Context) (interface{}, error
 		KeyId: os.Getenv("KMS_KEY_ID"),
 		KmsTokenIdentity: os.Getenv("KMS_TOKEN_IDENTITY"),
 		CaKeyBytes: caKeyBytes,
+		CaKeyPassphraseBytes: caKeyPassphraseBytes,
 		ValidityDuration: validity,
 		AuthorizationLambda: os.Getenv("AUTHORIZATION_LAMBDA"),
 	}
@@ -137,6 +146,7 @@ func DoHostCertReq(req HostCertReqJson, config LambdaConfig) (*HostCertRespJson,
 
 	signed, err := SignSsh(
 		config.CaKeyBytes,
+		config.CaKeyPassphraseBytes,
 		[]byte(req.PublicKey),
 		ssh.HostCert,
 		ssh.CertTimeInfinity,
@@ -193,6 +203,7 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 
 	signed, err := SignSsh(
 		config.CaKeyBytes,
+		config.CaKeyPassphraseBytes,
 		[]byte(req.PublicKey),
 		ssh.UserCert,
 		uint64(time.Now().Unix() + config.ValidityDuration),
