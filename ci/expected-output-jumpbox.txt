@@ -1,1 +1,1 @@
-ssh -o IdentityFile=~/.lkp/id_rsa -o ProxyCommand='ssh -W %h:%p ec2-user@12.34.56.78' -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 travis@localhost
+ssh -o IdentityFile=~/.lkp/id_rsa -J ec2-user@12.34.56.78 -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 travis@localhost
