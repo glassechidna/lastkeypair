@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"os"
 	"strings"
+	"path/filepath"
 )
 
 var hostCmd = &cobra.Command{
@@ -67,6 +68,12 @@ func hostSession() (*session.Session, error) {
 }
 
 func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId, funcIdentity string, principals []string) error {
+	// we absolute-ize these paths because ssh requires paths in sshd_config to be absolute
+	authorizedPrincipalsPath, _ = filepath.Abs(authorizedPrincipalsPath)
+	caPubkeyPath, _ = filepath.Abs(caPubkeyPath)
+	signedHostKeyPath, _ = filepath.Abs(signedHostKeyPath)
+
+
 	hostKeyBytes, err := ioutil.ReadFile(hostKeyPath)
 	if err != nil {
 		return errors.Wrap(err, "reading ssh host key")
