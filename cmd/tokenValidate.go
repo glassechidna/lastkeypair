@@ -51,7 +51,7 @@ to quickly create a Cobra application.`,
 func init() {
 	tokenCmd.AddCommand(tokenValidateCmd)
 
-	tokenValidateCmd.PersistentFlags().String("profile", "", "")
+	// profile is at root level
 	tokenValidateCmd.PersistentFlags().String("region", "", "")
 
 	tokenValidateCmd.PersistentFlags().String("key-id", "", "")

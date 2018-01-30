@@ -190,6 +190,6 @@ func init() {
 	hostCmd.PersistentFlags().String("sshd-config-path", "/etc/ssh/sshd_config", "")
 	hostCmd.PersistentFlags().String("lambda-name", "LastKeypair", "")
 	hostCmd.PersistentFlags().String("func-identity", "LastKeypair", "")
-	hostCmd.PersistentFlags().StringSliceP("principal", "p", []string{""}, "Additional principals to request from CA")
+	hostCmd.PersistentFlags().StringSlice("principal", []string{""}, "Additional principals to request from CA")
 	hostCmd.PersistentFlags().String("kms-key", "alias/LastKeypair", "ID, ARN or alias of KMS key for auth to CA")
 }

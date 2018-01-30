@@ -62,7 +62,7 @@ to quickly create a Cobra application.`,
 func init() {
 	tokenCmd.AddCommand(tokenCreateCmd)
 
-	tokenCreateCmd.PersistentFlags().String("profile", "", "")
+	// profile is at root level
 	tokenCreateCmd.PersistentFlags().String("region", "", "")
 
 	tokenCreateCmd.PersistentFlags().String("kms-key", "alias/LastKeypair", "ID, ARN or alias of KMS key for auth to CA")

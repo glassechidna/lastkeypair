@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/glassechidna/lastkeypair/common"
+	"github.com/spf13/viper"
 )
 
 var vouchCmd = &cobra.Command{
@@ -17,7 +18,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		profile, _ := cmd.PersistentFlags().GetString("profile")
+		profile := viper.GetString("profile")
 		region, _ := cmd.PersistentFlags().GetString("region")
 		sess := common.ClientAwsSession(profile, region)
 
@@ -35,7 +36,7 @@ to quickly create a Cobra application.`,
 func init() {
 	RootCmd.AddCommand(vouchCmd)
 
-	vouchCmd.PersistentFlags().String("profile", "", "")
+	// profile is at root level
 	vouchCmd.PersistentFlags().String("region", "", "")
 
 	vouchCmd.PersistentFlags().String("kms-key", "alias/LastKeypair", "ID, ARN or alias of KMS key for auth to CA")
