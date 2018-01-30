@@ -19,7 +19,7 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		profile, _ := cmd.PersistentFlags().GetString("profile")
 		region, _ := cmd.PersistentFlags().GetString("region")
-		sess := common.AwsSession(profile, region)
+		sess := common.ClientAwsSession(profile, region)
 
 		keyId, _ := cmd.PersistentFlags().GetString("kms-key")
 		to, _ := cmd.PersistentFlags().GetString("to")

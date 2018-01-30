@@ -80,7 +80,7 @@ func SignSsh(caKeyBytes, sshKeyPassphrase, pubkeyBytes []byte, certType uint32, 
 	return &formatted, nil
 }
 
-func AwsSession(profile, region string) *session.Session {
+func ClientAwsSession(profile, region string) *session.Session {
 	sessOpts := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,

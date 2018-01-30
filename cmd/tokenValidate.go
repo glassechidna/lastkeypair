@@ -20,7 +20,7 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		profile := viper.GetString("profile")
 		region := viper.GetString("region")
-		sess := common.AwsSession(profile, region)
+		sess := common.ClientAwsSession(profile, region)
 
 		key := viper.GetString("key-id")
 		fromName := viper.GetString("from-name")
