@@ -191,7 +191,8 @@ Resources:
                 jumpboxes: [{
                   address: process.env.JUMPBOX_DNS,
                   user: "ec2-user"
-                }]
+                }],
+                TargetAddress: "78.65.43.21"
               });
             }
           };

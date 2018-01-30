@@ -1,1 +1,1 @@
-ssh -o IdentityFile=~/.lkp/id_rsa -J ec2-user@12.34.56.78 -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 travis@localhost
+ssh -o IdentityFile=~/.lkp/id_rsa -J ec2-user@12.34.56.78 -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 ec2-user@78.65.43.21

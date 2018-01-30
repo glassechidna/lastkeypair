@@ -25,7 +25,7 @@ sleep 1
 ./lastkeypair_linux_amd64 ssh exec --instance-arn abcdef -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 travis@localhost | tee out.log
 diff out.log ci/expected-output.txt
 
-./lastkeypair_linux_amd64 ssh exec --instance-arn defghi --dry-run -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 travis@localhost | tee out.log
+./lastkeypair_linux_amd64 ssh exec --instance-arn defghi --dry-run -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 | tee out.log
 diff out.log ci/expected-output-jumpbox.txt
 
 VOUCHER=$(./lastkeypair_linux_amd64 vouch --vouchee aidan --context moo)
