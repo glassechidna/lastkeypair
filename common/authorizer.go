@@ -34,6 +34,7 @@ type LkpUserCertAuthorizationResponse struct {
 	Authorized bool
 	Principals []string
 	Jumpboxes  []Jumpbox `json:",omitempty"`
+	TargetAddress string `json:",omitempty"`
 	CertificateOptions struct {
 		ForceCommand  *string `json:",omitempty"`
 		SourceAddress *string `json:",omitempty"`

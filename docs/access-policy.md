@@ -50,6 +50,7 @@ interface LkpUserCertAuthorizationResponse {
         Address: string; // ip/domain that user should use as bastion host
         User: string; // linux user on jumpbox
     }[];
+    TargetAddress?: string; // the IP address of the instance to connect to.
     CertificateOptions?: { // as per https://man.openbsd.org/ssh-keygen#O
         ForceCommand?: string;
         SourceAddress?: string;

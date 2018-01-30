@@ -72,6 +72,11 @@ func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, insta
 	}
 
 	args = append(lkpArgs, args...)
+
+	if len(signed.TargetAddress) > 0 {
+		args = append(args, fmt.Sprintf("%s@%s", username, signed.TargetAddress))
+	}
+
 	return args
 }
 

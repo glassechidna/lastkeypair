@@ -226,6 +226,7 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 	resp := UserCertRespJson{
 		SignedPublicKey: *signed,
 		Jumpboxes: auth.Jumpboxes,
+		TargetAddress: auth.TargetAddress,
 		Expiry: expiry.Unix(),
 	}
 
