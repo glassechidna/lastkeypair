@@ -11,3 +11,8 @@ import:
   version: ^0.8.0
 - package: github.com/eawsy/aws-lambda-go-core
 - package: github.com/mitchellh/go-homedir
+- package: github.com/pquerna/otp
+  version: ^1.0.0
+  subpackages:
+  - totp
+- package: github.com/glassechidna/awscredcache

@@ -16,6 +16,9 @@ import (
 	"github.com/pkg/errors"
 	"crypto/rand"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/glassechidna/awscredcache"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/pquerna/otp/totp"
 )
 
 var ApplicationVersion string
@@ -81,9 +84,21 @@ func SignSsh(caKeyBytes, sshKeyPassphrase, pubkeyBytes []byte, certType uint32, 
 }
 
 func ClientAwsSession(profile, region string) *session.Session {
+	provider := awscredcache.NewAwsCacheCredProvider(profile)
+	provider.MfaCodeProvider = func(mfaSecret string) (string, error) {
+		if len(mfaSecret) > 0 {
+			return totp.GenerateCode(mfaSecret, time.Now())
+		} else {
+			return stscreds.StdinTokenProvider()
+		}
+	}
+
+	creds := credentials.NewCredentials(provider.WrapInChain())
+
 	sessOpts := session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+		Config: aws.Config{Credentials: creds},
 	}
 
 	if len(profile) > 0 {
@@ -91,7 +106,6 @@ func ClientAwsSession(profile, region string) *session.Session {
 	}
 
 	sess, _ := session.NewSessionWithOptions(sessOpts)
-	config := aws.NewConfig()
 
 	userAgentHandler := request.NamedHandler{
 		Name: "LastKeypair.UserAgentHandler",
@@ -100,8 +114,7 @@ func ClientAwsSession(profile, region string) *session.Session {
 	sess.Handlers.Build.PushBackNamed(userAgentHandler)
 
 	if len(region) > 0 {
-		config.Region = aws.String(region)
-		sess.Config = config
+		sess.Config.Region = aws.String(region)
 	}
 
 	return sess
