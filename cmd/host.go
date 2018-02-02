@@ -19,13 +19,15 @@ import (
 
 var hostCmd = &cobra.Command{
 	Use:   "host",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Create signed SSH host certificates",
+	Long: `
+A signed SSH host certificate means that users are able to log into a machine
+without seeing a host key validation prompt if their SSH client trusts the 
+certificate authority that signed the host cert.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+This command can be invoked from an EC2 instance userdata script to request
+a signed SSH host cert and install it in the appropriate sshd config.
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		hostKeyPath, _ := cmd.PersistentFlags().GetString("host-key-path")
 		signedHostKeyPath, _ := cmd.PersistentFlags().GetString("signed-host-key-path")
@@ -149,7 +151,6 @@ func getInstanceArn(client *ec2metadata.EC2Metadata) (*string, error) {
 
 	ret := fmt.Sprintf("arn:aws:ec2:%s:%s:instance/%s", region, ident.AccountID, ident.InstanceID)
 	return &ret, nil
-
 }
 
 func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, funcIdentity, instanceArn string, principals []string) (*common.Token, error) {
