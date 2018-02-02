@@ -25,8 +25,8 @@ to quickly create a Cobra application.`,
 		region, _ := cmd.PersistentFlags().GetString("region")
 		sess := common.ClientAwsSession(profile, region)
 
-		lambdaFunc, _ := cmd.PersistentFlags().GetString("lambda-func")
-		kmsKeyId, _ := cmd.PersistentFlags().GetString("kms-key")
+		lambdaFunc := viper.GetString("lambda-func")
+		kmsKeyId := viper.GetString("kms-key")
 		funcIdentity, _ := cmd.PersistentFlags().GetString("func-identity")
 		instanceArn, _ := cmd.PersistentFlags().GetString("instance-arn")
 		username, _ := cmd.PersistentFlags().GetString("ssh-username")
@@ -54,4 +54,6 @@ func init() {
 	sshExecCmd.PersistentFlags().String("ssh-username", "ec2-user", "Username that you wish to SSH in with")
 	sshExecCmd.PersistentFlags().StringSlice("voucher", []string{}, "Optional voucher(s) from other people")
 	sshExecCmd.PersistentFlags().Bool("dry-run", false, "Do everything _except_ the SSH login")
+
+	viper.BindPFlags(sshExecCmd.PersistentFlags())
 }
