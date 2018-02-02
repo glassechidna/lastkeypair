@@ -60,6 +60,8 @@ func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, insta
 		"ssh",
 		"-o",
 		"IdentityFile=~/.lkp/id_rsa",
+		"-o",
+		fmt.Sprintf("HostKeyAlias=%s", instanceArn),
 	}
 
 	if len(signed.Jumpboxes) > 0 {
