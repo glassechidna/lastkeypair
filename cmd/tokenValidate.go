@@ -9,7 +9,7 @@ import (
 )
 
 var tokenValidateCmd = &cobra.Command{
-	Use:   "validate",
+	Use:   "token-validate",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -49,7 +49,7 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	tokenCmd.AddCommand(tokenValidateCmd)
+	advCmd.AddCommand(tokenValidateCmd)
 
 	// profile is at root level
 	tokenValidateCmd.PersistentFlags().String("region", "", "")

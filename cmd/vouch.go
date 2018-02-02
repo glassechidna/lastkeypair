@@ -34,7 +34,7 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	RootCmd.AddCommand(vouchCmd)
+	advCmd.AddCommand(vouchCmd)
 
 	// profile is at root level
 	vouchCmd.PersistentFlags().String("region", "", "")

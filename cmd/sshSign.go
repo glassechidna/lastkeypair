@@ -12,7 +12,7 @@ import (
 )
 
 var sshSignCmd = &cobra.Command{
-	Use:   "sign",
+	Use:   "ssh-sign",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -51,7 +51,7 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	sshCmd.AddCommand(sshSignCmd)
+	advCmd.AddCommand(sshSignCmd)
 
 	sshSignCmd.PersistentFlags().String("ca-key-path", "", "")
 	sshSignCmd.PersistentFlags().String("ca-key-passphrase", "", "")

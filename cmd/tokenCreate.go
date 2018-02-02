@@ -10,7 +10,7 @@ import (
 )
 
 var tokenCreateCmd = &cobra.Command{
-	Use:   "create",
+	Use:   "token-create",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -60,7 +60,7 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	tokenCmd.AddCommand(tokenCreateCmd)
+	advCmd.AddCommand(tokenCreateCmd)
 
 	// profile is at root level
 	tokenCreateCmd.PersistentFlags().String("region", "", "")
