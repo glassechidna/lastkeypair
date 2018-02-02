@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, instanceArn, username string, encodedVouchers, args []string) []string {
+func SshCommand(sess *session.Session, lambdaFunc, kmsKeyId, instanceArn, username string, encodedVouchers, args []string) []string {
 	kp, _ := MyKeyPair()
 
 	ident, err := CallerIdentityUser(sess)
@@ -34,7 +34,7 @@ func SshCommand(sess *session.Session, lambdaFunc, funcIdentity, kmsKeyId, insta
 		FromId: ident.UserId,
 		FromAccount: ident.AccountId,
 		FromName: ident.Username,
-		To: funcIdentity,
+		To: "LastKeypair",
 		Type: ident.Type,
 		RemoteInstanceArn: instanceArn,
 		Vouchers: vouchers,

@@ -36,10 +36,9 @@ a signed SSH host cert and install it in the appropriate sshd config.
 		authorizedPrincipalsPath, _ := cmd.PersistentFlags().GetString("authorized-principals-path")
 		functionName, _ := cmd.PersistentFlags().GetString("lambda-name")
 		kmsKeyId, _ := cmd.PersistentFlags().GetString("kms-key")
-		funcIdentity, _ := cmd.PersistentFlags().GetString("func-identity")
 		principals, _ := cmd.PersistentFlags().GetStringSlice("principal")
 
-		err := doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId, funcIdentity, principals)
+		err := doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId, principals)
 		if err != nil {
 			log.Panicf("err: %s\n", err.Error())
 		}
@@ -69,7 +68,7 @@ func hostSession() (*session.Session, error) {
 	return sess, nil
 }
 
-func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId, funcIdentity string, principals []string) error {
+func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authorizedPrincipalsPath, functionName, kmsKeyId string, principals []string) error {
 	// we absolute-ize these paths because ssh requires paths in sshd_config to be absolute
 	authorizedPrincipalsPath, _ = filepath.Abs(authorizedPrincipalsPath)
 	caPubkeyPath, _ = filepath.Abs(caPubkeyPath)
@@ -92,7 +91,7 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 	}
 
 	principals = append(principals, *instanceArn)
-	token, err := hostCertToken(sess, *ident, kmsKeyId, funcIdentity, *instanceArn, principals)
+	token, err := hostCertToken(sess, *ident, kmsKeyId, *instanceArn, principals)
 
 	caPubkey, err := client.GetMetadata("public-keys/0/openssh-key")
 	if err != nil {
@@ -153,11 +152,11 @@ func getInstanceArn(client *ec2metadata.EC2Metadata) (*string, error) {
 	return &ret, nil
 }
 
-func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, funcIdentity, instanceArn string, principals []string) (*common.Token, error) {
+func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, instanceArn string, principals []string) (*common.Token, error) {
 	params := common.TokenParams{
 		FromId:          ident.UserId,
 		FromAccount:     ident.AccountId,
-		To:              funcIdentity,
+		To:              "LastKeypair",
 		Type:            "AssumedRole",
 		HostInstanceArn: instanceArn,
 		Principals: principals,
@@ -190,7 +189,6 @@ func init() {
 	hostCmd.PersistentFlags().String("authorized-principals-path", "/etc/ssh/authorized_principals", "")
 	hostCmd.PersistentFlags().String("sshd-config-path", "/etc/ssh/sshd_config", "")
 	hostCmd.PersistentFlags().String("lambda-name", "LastKeypair", "")
-	hostCmd.PersistentFlags().String("func-identity", "LastKeypair", "")
 	hostCmd.PersistentFlags().StringSlice("principal", []string{""}, "Additional principals to request from CA")
 	hostCmd.PersistentFlags().String("kms-key", "alias/LastKeypair", "ID, ARN or alias of KMS key for auth to CA")
 }
