@@ -109,6 +109,9 @@ func RequestSignedPayload(sess *session.Session, lambdaArn string, req interface
 	if err != nil {
 		return errors.Wrap(err, "invoking CA lambda")
 	}
+	if lambdaResp.FunctionError != nil {
+		return errors.New(fmt.Sprintf("%s: %s", *lambdaResp.FunctionError, string(lambdaResp.Payload)))
+	}
 
 	err = json.Unmarshal(lambdaResp.Payload, resp)
 	if err != nil {
