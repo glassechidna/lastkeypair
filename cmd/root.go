@@ -30,6 +30,7 @@ func Execute() {
 }
 
 func init() {
+	cobra.MousetrapHelpText = "" // we want to use mousetrap ourselves in setup
 	cobra.OnInitialize(initConfig)
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.lkp/config.yml)")
@@ -46,6 +47,5 @@ func initConfig() {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 }

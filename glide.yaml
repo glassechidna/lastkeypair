@@ -16,3 +16,8 @@ import:
   subpackages:
   - totp
 - package: github.com/glassechidna/awscredcache
+- package: github.com/inconshreveable/mousetrap
+  version: ^1.0.0
+- package: github.com/manifoldco/promptui
+- package: github.com/chzyer/readline
+  version: master
