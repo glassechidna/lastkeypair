@@ -34,7 +34,7 @@ a signed SSH host cert and install it in the appropriate sshd config.
 		caPubkeyPath, _ := cmd.PersistentFlags().GetString("cert-authority-path")
 		sshdConfigPath, _ := cmd.PersistentFlags().GetString("sshd-config-path")
 		authorizedPrincipalsPath, _ := cmd.PersistentFlags().GetString("authorized-principals-path")
-		functionName, _ := cmd.PersistentFlags().GetString("lambda-name")
+		functionName, _ := cmd.PersistentFlags().GetString("lambda-func")
 		kmsKeyId, _ := cmd.PersistentFlags().GetString("kms-key")
 		principals, _ := cmd.PersistentFlags().GetStringSlice("principal")
 
@@ -188,7 +188,7 @@ func init() {
 	hostCmd.PersistentFlags().String("cert-authority-path", "/etc/ssh/cert_authority.pub", "")
 	hostCmd.PersistentFlags().String("authorized-principals-path", "/etc/ssh/authorized_principals", "")
 	hostCmd.PersistentFlags().String("sshd-config-path", "/etc/ssh/sshd_config", "")
-	hostCmd.PersistentFlags().String("lambda-name", "LastKeypair", "")
+	hostCmd.PersistentFlags().String("lambda-func", "LastKeypair", "")
 	hostCmd.PersistentFlags().StringSlice("principal", []string{""}, "Additional principals to request from CA")
 	hostCmd.PersistentFlags().String("kms-key", "alias/LastKeypair", "ID, ARN or alias of KMS key for auth to CA")
 }
