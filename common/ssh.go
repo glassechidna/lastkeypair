@@ -11,9 +11,36 @@ import (
 	"github.com/pkg/errors"
 	"fmt"
 	"strings"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-func SshCommand(sess *session.Session, lambdaFunc, kmsKeyId, instanceArn, username string, encodedVouchers, args []string) []string {
+func sshCommandFromResponse(req UserCertReqJson, resp UserCertRespJson) []string {
+	lkpArgs := []string{
+		"ssh",
+		"-o",
+		"IdentityFile=~/.lkp/id_rsa",
+		"-o",
+		fmt.Sprintf("HostKeyAlias=%s", req.Token.Params.RemoteInstanceArn),
+	}
+
+	if len(resp.Jumpboxes) > 0 {
+		jumps := []string{}
+		for _, jbox := range resp.Jumpboxes {
+			jumps = append(jumps, fmt.Sprintf("%s@%s", jbox.User, jbox.Address))
+		}
+		joinedJumps := strings.Join(jumps, ",")
+		lkpArgs = append(lkpArgs, "-J", joinedJumps)
+	}
+
+	if len(resp.TargetAddress) > 0 {
+		lkpArgs = append(lkpArgs, "-W", resp.TargetAddress + ":22")
+	}
+
+	return lkpArgs
+}
+
+func sshReqResp(sess *session.Session, lambdaFunc, kmsKeyId, instanceArn, username string, encodedVouchers []string) (UserCertReqJson, UserCertRespJson) {
 	kp, _ := MyKeyPair()
 
 	ident, err := CallerIdentityUser(sess)
@@ -22,7 +49,7 @@ func SshCommand(sess *session.Session, lambdaFunc, kmsKeyId, instanceArn, userna
 	}
 
 	vouchers := []VoucherToken{}
-	for _, encVoucher := range(encodedVouchers) {
+	for _, encVoucher := range encodedVouchers {
 		voucher, err := DecodeVoucherToken(encVoucher)
 		if err != nil {
 			log.Panicf("couldn't decode voucher: %+v\n", err)
@@ -47,39 +74,82 @@ func SshCommand(sess *session.Session, lambdaFunc, kmsKeyId, instanceArn, userna
 		PublicKey: string(kp.PublicKey),
 	}
 
-	signed := UserCertRespJson{}
-	err = RequestSignedPayload(sess, lambdaFunc, req, &signed)
+	resp := UserCertRespJson{}
+	err = RequestSignedPayload(sess, lambdaFunc, req, &resp)
 	if err != nil {
 		log.Panicf("err: %s", err.Error())
 	}
 
+	return req, resp
+}
+
+//func SshCommand(sess *session.Session, lambdaFunc, kmsKeyId, InstanceArn, username string, encodedVouchers, args []string) []string {
+//	req, resp := sshReqResp(sess, lambdaFunc, kmsKeyId, InstanceArn, username, encodedVouchers)
+//	return append(sshCommandFromResponse(req, resp), args...)
+//}
+
+type ReifiedLogin struct {
+	sess            *session.Session
+	lambdaFunc      string
+	kmsKeyId        string
+	InstanceArn     string
+	username        string
+	encodedVouchers []string
+	args            []string
+
+	Request  *UserCertReqJson
+	Response *UserCertRespJson
+}
+
+func NewReifiedLoginWithCmd(cmd *cobra.Command, args []string) *ReifiedLogin {
+	profile := viper.GetString("profile")
+	region, _ := cmd.PersistentFlags().GetString("region")
+	sess := ClientAwsSession(profile, region)
+
+	lambdaFunc := viper.GetString("lambda-func")
+	kmsKeyId := viper.GetString("kms-key")
+	instanceArn, _ := cmd.PersistentFlags().GetString("instance-arn")
+	username, _ := cmd.PersistentFlags().GetString("ssh-username")
+	vouchers, _ := cmd.PersistentFlags().GetStringSlice("voucher")
+
+	return &ReifiedLogin{
+		sess:            sess,
+		lambdaFunc:      lambdaFunc,
+		kmsKeyId:        kmsKeyId,
+		InstanceArn:     instanceArn,
+		username:        username,
+		encodedVouchers: vouchers,
+		args:            args,
+	}
+}
+
+func (r *ReifiedLogin) PopulateByInvoke() {
+	req, resp := sshReqResp(r.sess, r.lambdaFunc, r.kmsKeyId, r.InstanceArn, r.username, r.encodedVouchers)
+
 	certPath := path.Join(AppDir(), "id_rsa-cert.pub")
-	ioutil.WriteFile(certPath, []byte(signed.SignedPublicKey), 0644)
+	ioutil.WriteFile(certPath, []byte(resp.SignedPublicKey), 0644)
 
-	lkpArgs := []string{
-		"ssh",
-		"-o",
-		"IdentityFile=~/.lkp/id_rsa",
-		"-o",
-		fmt.Sprintf("HostKeyAlias=%s", instanceArn),
-	}
+	r.Request = &req
+	r.Response = &resp
 
-	if len(signed.Jumpboxes) > 0 {
-		jumps := []string{}
-		for _, jbox := range signed.Jumpboxes {
-			jumps = append(jumps, fmt.Sprintf("%s@%s", jbox.User, jbox.Address))
-		}
-		joinedJumps := strings.Join(jumps, ",")
-		lkpArgs = append(lkpArgs, "-J", joinedJumps)
-	}
+	serialized, _ := json.MarshalIndent(r, "", "  ")
+	ioutil.WriteFile(r.SerializedPath(), serialized, 0644)
+}
 
-	args = append(lkpArgs, args...)
+func (r *ReifiedLogin) SerializedPath() string {
+	// make name filesystem-friendly
+	arn := strings.Replace(r.InstanceArn, ":", "-", -1)
+	arn = strings.Replace(arn, "/", "-", -1)
+	return path.Join(AppDir(), fmt.Sprintf("conn-%s.json", arn))
+}
 
-	if len(signed.TargetAddress) > 0 {
-		args = append(args, fmt.Sprintf("%s@%s", username, signed.TargetAddress))
-	}
+func (r *ReifiedLogin) PopulateByRestoreCache() {
+	serialized, _ := ioutil.ReadFile(r.SerializedPath())
+	json.Unmarshal(serialized, r)
+}
 
-	return args
+func (r *ReifiedLogin) SshCommand() []string {
+	return append(sshCommandFromResponse(*r.Request, *r.Response), r.args...)
 }
 
 func lambdaClientForKeyId(sess *session.Session, lambdaArn string) *lambda.Lambda {

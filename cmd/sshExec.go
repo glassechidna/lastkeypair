@@ -21,19 +21,11 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		profile := viper.GetString("profile")
-		region, _ := cmd.PersistentFlags().GetString("region")
-		sess := common.ClientAwsSession(profile, region)
+		rei := common.NewReifiedLoginWithCmd(cmd, args)
+		rei.PopulateByInvoke()
+		sshcmd := rei.SshCommand()
 
-		lambdaFunc := viper.GetString("lambda-func")
-		kmsKeyId := viper.GetString("kms-key")
-		instanceArn, _ := cmd.PersistentFlags().GetString("instance-arn")
-		username, _ := cmd.PersistentFlags().GetString("ssh-username")
 		dryRun, _ := cmd.PersistentFlags().GetBool("dry-run")
-		vouchers, _ := cmd.PersistentFlags().GetStringSlice("voucher")
-
-		sshcmd := common.SshCommand(sess, lambdaFunc, kmsKeyId, instanceArn, username, vouchers, args)
-
 		if dryRun {
 			fmt.Println(strings.Join(sshcmd, " "))
 		} else {
