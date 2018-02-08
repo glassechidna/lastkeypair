@@ -131,9 +131,9 @@ kms-key: %s
 
 func writeSshConfig() string {
 	str := `
-Match exec "lastkeypair ssh match --instance-arn %n"
-  IdentityFile ~/.lkp/id_rsa
-  CertificateFile ~/.lkp/id_rsa-cert.pub
+Match exec "lastkeypair ssh match --instance-arn %n --ssh-username %r"
+  IdentityFile /Users/aidan/.lkp/id_rsa
+  CertificateFile /Users/aidan/.lkp/id_rsa-cert.pub
   ProxyCommand lastkeypair ssh proxy --instance-arn %h
 `
 

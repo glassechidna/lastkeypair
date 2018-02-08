@@ -6,6 +6,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/glassechidna/lastkeypair/common"
 	"github.com/glassechidna/lastkeypair/common/netcat"
+	"syscall"
+	"os/exec"
+	"fmt"
 )
 
 var sshProxyCmd = &cobra.Command{
@@ -24,8 +27,17 @@ func proxy(cmd *cobra.Command, args []string) {
 	rei := common.NewReifiedLoginWithCmd(cmd, args)
 	rei.PopulateByRestoreCache()
 
-	conn, _ := net.Dial("tcp", rei.Response.TargetAddress + ":" + port)
-	netcat.TcpToPipes(conn, os.Stdin, os.Stdout)
+	jump := rei.Response.Jumpboxes
+	if len(jump) == 0 {
+		conn, _ := net.Dial("tcp", rei.Response.TargetAddress + ":" + port)
+		netcat.TcpToPipes(conn, os.Stdin, os.Stdout)
+	} else {
+		sshconfPath := rei.WriteSshConfig()
+		lastJumphost := fmt.Sprintf("jump%d", len(jump) - 1)
+		sshcmd := []string{"ssh", "-F", sshconfPath, "-W", rei.Response.TargetAddress + ":22", lastJumphost}
+		sshPath, _ := exec.LookPath("ssh")
+		syscall.Exec(sshPath, sshcmd, os.Environ())
+	}
 }
 
 func init() {
@@ -33,4 +45,3 @@ func init() {
 	sshProxyCmd.PersistentFlags().String("instance-arn", "", "Fully-specified EC2 instance ARN")
 	sshProxyCmd.PersistentFlags().String("port", "22", "Remote SSH server port (default 22)")
 }
-

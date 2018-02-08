@@ -13,32 +13,9 @@ import (
 	"strings"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"path/filepath"
+	"os"
 )
-
-func sshCommandFromResponse(req UserCertReqJson, resp UserCertRespJson) []string {
-	lkpArgs := []string{
-		"ssh",
-		"-o",
-		"IdentityFile=~/.lkp/id_rsa",
-		"-o",
-		fmt.Sprintf("HostKeyAlias=%s", req.Token.Params.RemoteInstanceArn),
-	}
-
-	if len(resp.Jumpboxes) > 0 {
-		jumps := []string{}
-		for _, jbox := range resp.Jumpboxes {
-			jumps = append(jumps, fmt.Sprintf("%s@%s", jbox.User, jbox.Address))
-		}
-		joinedJumps := strings.Join(jumps, ",")
-		lkpArgs = append(lkpArgs, "-J", joinedJumps)
-	}
-
-	if len(resp.TargetAddress) > 0 {
-		lkpArgs = append(lkpArgs, "-W", resp.TargetAddress + ":22")
-	}
-
-	return lkpArgs
-}
 
 func sshReqResp(sess *session.Session, lambdaFunc, kmsKeyId, instanceArn, username string, encodedVouchers []string) (UserCertReqJson, UserCertRespJson) {
 	kp, _ := MyKeyPair()
@@ -126,7 +103,7 @@ func NewReifiedLoginWithCmd(cmd *cobra.Command, args []string) *ReifiedLogin {
 func (r *ReifiedLogin) PopulateByInvoke() {
 	req, resp := sshReqResp(r.sess, r.lambdaFunc, r.kmsKeyId, r.InstanceArn, r.username, r.encodedVouchers)
 
-	certPath := path.Join(AppDir(), "id_rsa-cert.pub")
+	certPath := r.CertificatePath()
 	ioutil.WriteFile(certPath, []byte(resp.SignedPublicKey), 0644)
 
 	r.Request = &req
@@ -148,8 +125,49 @@ func (r *ReifiedLogin) PopulateByRestoreCache() {
 	json.Unmarshal(serialized, r)
 }
 
-func (r *ReifiedLogin) SshCommand() []string {
-	return append(sshCommandFromResponse(*r.Request, *r.Response), r.args...)
+func (r *ReifiedLogin) WriteSshConfig() string {
+	jump := r.Response.Jumpboxes
+
+	sshconfPath := filepath.Join(AppDir(), "sshconf")
+	f, err := os.OpenFile(sshconfPath, os.O_WRONLY|os.O_CREATE, 0777)
+	if err != nil { panic(err) }
+
+	for idx, j := range jump {
+		f.WriteString(fmt.Sprintf(`
+Host jump%d
+  HostName %s
+  IdentityFile %s
+  CertificateFile %s
+  User %s
+`, idx, j.Address, r.PrivateKeyPath(), r.CertificatePath(), j.User))
+		if idx > 0 {
+			f.WriteString(fmt.Sprintf("  ProxyJump jump%d\n\n", idx-1))
+		}
+	}
+
+	f.WriteString(fmt.Sprintf(`
+Host target
+  HostName %s
+  HostKeyAlias %s
+  IdentityFile %s
+  CertificateFile %s
+  User %s
+`, r.Response.TargetAddress, r.Request.Token.Params.RemoteInstanceArn, r.PrivateKeyPath(), r.CertificatePath(), r.Request.Token.Params.SshUsername))
+
+	if len(jump) > 0 {
+		f.WriteString(fmt.Sprintf("  ProxyJump jump%d\n\n", len(jump) - 1))
+	}
+
+	f.Close()
+	return sshconfPath
+}
+
+func (r *ReifiedLogin) PrivateKeyPath() string {
+	return filepath.Join(AppDir(), "id_rsa")
+}
+
+func (r *ReifiedLogin) CertificatePath() string {
+	return filepath.Join(AppDir(), "id_rsa-cert.pub")
 }
 
 func lambdaClientForKeyId(sess *session.Session, lambdaArn string) *lambda.Lambda {

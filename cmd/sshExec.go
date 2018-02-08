@@ -23,7 +23,11 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		rei := common.NewReifiedLoginWithCmd(cmd, args)
 		rei.PopulateByInvoke()
-		sshcmd := rei.SshCommand()
+
+		sshconfPath := rei.WriteSshConfig()
+		sshcmd := []string{"ssh", "-F", sshconfPath}
+		sshcmd = append(sshcmd, args...)
+		sshcmd = append(sshcmd, "target")
 
 		dryRun, _ := cmd.PersistentFlags().GetBool("dry-run")
 		if dryRun {

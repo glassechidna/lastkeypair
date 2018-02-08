@@ -29,4 +29,5 @@ func isLkpHost(hostname string) bool {
 func init() {
 	sshCmd.AddCommand(sshMatchCmd)
 	sshMatchCmd.PersistentFlags().String("instance-arn", "", "")
+	sshMatchCmd.PersistentFlags().String("ssh-username", "ec2-user", "")
 }
