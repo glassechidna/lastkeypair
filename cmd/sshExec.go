@@ -27,7 +27,9 @@ to quickly create a Cobra application.`,
 		sshconfPath := rei.WriteSshConfig()
 		sshcmd := []string{"ssh", "-F", sshconfPath}
 		sshcmd = append(sshcmd, args...)
-		sshcmd = append(sshcmd, "target")
+		if len(rei.Response.TargetAddress) > 0 {
+			sshcmd = append(sshcmd, "target")
+		}
 
 		dryRun, _ := cmd.PersistentFlags().GetBool("dry-run")
 		if dryRun {

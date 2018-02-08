@@ -145,12 +145,15 @@ Host jump%d
 
 	filebuf = filebuf + fmt.Sprintf(`
 Host target
-  HostName %s
   HostKeyAlias %s
   IdentityFile %s
   CertificateFile %s
   User %s
-`, r.Response.TargetAddress, r.Request.Token.Params.RemoteInstanceArn, r.PrivateKeyPath(), r.CertificatePath(), r.Request.Token.Params.SshUsername)
+`, r.Request.Token.Params.RemoteInstanceArn, r.PrivateKeyPath(), r.CertificatePath(), r.Request.Token.Params.SshUsername)
+
+	if len(r.Response.TargetAddress) > 0 {
+		filebuf = filebuf + fmt.Sprintf("  HostName %s\n", r.Response.TargetAddress)
+	}
 
 	if len(jump) > 0 {
 		filebuf = filebuf + fmt.Sprintf("  ProxyJump jump%d\n\n", len(jump) - 1)

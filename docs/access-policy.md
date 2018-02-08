@@ -53,7 +53,8 @@ interface LkpUserCertAuthorizationResponse {
                                // the jumpbox has a different has a different
                                // principal in its host cert. defaults to Address
     }[];
-    TargetAddress?: string; // the IP address of the instance to connect to.
+    TargetAddress?: string; // the IP address of the instance to connect to. this is
+                            // necessary to enable transparent ssh client operation
     CertificateOptions?: { // as per https://man.openbsd.org/ssh-keygen#O
         ForceCommand?: string;
         SourceAddress?: string;
