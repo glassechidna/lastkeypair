@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"path/filepath"
-	"os"
 )
 
 func sshReqResp(sess *session.Session, lambdaFunc, kmsKeyId, instanceArn, username string, encodedVouchers []string) (UserCertReqJson, UserCertRespJson) {
@@ -128,38 +127,38 @@ func (r *ReifiedLogin) PopulateByRestoreCache() {
 func (r *ReifiedLogin) WriteSshConfig() string {
 	jump := r.Response.Jumpboxes
 
-	sshconfPath := filepath.Join(AppDir(), "sshconf")
-	f, err := os.OpenFile(sshconfPath, os.O_WRONLY|os.O_CREATE, 0777)
-	if err != nil { panic(err) }
+	filebuf := ""
 
 	for idx, j := range jump {
-		f.WriteString(fmt.Sprintf(`
+		filebuf = filebuf + fmt.Sprintf(`
 Host jump%d
   HostName %s
   HostKeyAlias %s
   IdentityFile %s
   CertificateFile %s
   User %s
-`, idx, j.Address, j.HostKeyAlias, r.PrivateKeyPath(), r.CertificatePath(), j.User))
+`, idx, j.Address, j.HostKeyAlias, r.PrivateKeyPath(), r.CertificatePath(), j.User)
 		if idx > 0 {
-			f.WriteString(fmt.Sprintf("  ProxyJump jump%d\n\n", idx-1))
+			filebuf = filebuf + fmt.Sprintf("  ProxyJump jump%d\n\n", idx-1)
 		}
 	}
 
-	f.WriteString(fmt.Sprintf(`
+	filebuf = filebuf + fmt.Sprintf(`
 Host target
   HostName %s
   HostKeyAlias %s
   IdentityFile %s
   CertificateFile %s
   User %s
-`, r.Response.TargetAddress, r.Request.Token.Params.RemoteInstanceArn, r.PrivateKeyPath(), r.CertificatePath(), r.Request.Token.Params.SshUsername))
+`, r.Response.TargetAddress, r.Request.Token.Params.RemoteInstanceArn, r.PrivateKeyPath(), r.CertificatePath(), r.Request.Token.Params.SshUsername)
 
 	if len(jump) > 0 {
-		f.WriteString(fmt.Sprintf("  ProxyJump jump%d\n\n", len(jump) - 1))
+		filebuf = filebuf + fmt.Sprintf("  ProxyJump jump%d\n\n", len(jump) - 1)
 	}
 
-	f.Close()
+	sshconfPath := filepath.Join(AppDir(), "sshconf")
+	ioutil.WriteFile(sshconfPath, []byte(filebuf), 0700)
+
 	return sshconfPath
 }
 
