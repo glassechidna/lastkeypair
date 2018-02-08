@@ -25,6 +25,7 @@ type UserCertRespJson struct {
 type Jumpbox struct {
 	Address    string
 	User       string
+	HostKeyAlias string
 }
 
 type HostCertRespJson struct {

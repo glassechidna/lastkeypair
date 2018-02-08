@@ -132,9 +132,17 @@ func (a *AuthorizationLambda) DoUserReq(userReq UserCertReqJson) (*LkpUserCertAu
 		return nil, errors.Wrap(err, "invoking user cert authorisation lambda")
 	}
 
+	jumpPrincipals := []string{}
+	for _, j := range authResp.Jumpboxes {
+		if len(j.HostKeyAlias) == 0 {
+			j.HostKeyAlias = j.Address
+		}
+		jumpPrincipals = append(jumpPrincipals, j.HostKeyAlias)
+	}
+
 	// if the lambda's response is missing the "Principals" key, default to the requested instance
 	if authResp.Principals == nil {
-		authResp.Principals = []string{p.RemoteInstanceArn}
+		authResp.Principals = append(jumpPrincipals, p.RemoteInstanceArn)
 	}
 
 	return &authResp, nil

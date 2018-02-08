@@ -136,10 +136,11 @@ func (r *ReifiedLogin) WriteSshConfig() string {
 		f.WriteString(fmt.Sprintf(`
 Host jump%d
   HostName %s
+  HostKeyAlias %s
   IdentityFile %s
   CertificateFile %s
   User %s
-`, idx, j.Address, r.PrivateKeyPath(), r.CertificatePath(), j.User))
+`, idx, j.Address, j.HostKeyAlias, r.PrivateKeyPath(), r.CertificatePath(), j.User))
 		if idx > 0 {
 			f.WriteString(fmt.Sprintf("  ProxyJump jump%d\n\n", idx-1))
 		}
