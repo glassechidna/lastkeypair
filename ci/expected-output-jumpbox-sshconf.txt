@@ -1,0 +1,17 @@
+IgnoreUnknown CertificateFile
+
+Host jump0
+  HostName 12.34.56.78
+  HostKeyAlias 
+  IdentityFile /home/travis/.lkp/id_rsa
+  CertificateFile /home/travis/.lkp/id_rsa-cert.pub
+  User ec2-user
+
+Host target
+  HostKeyAlias defghi
+  IdentityFile /home/travis/.lkp/id_rsa
+  CertificateFile /home/travis/.lkp/id_rsa-cert.pub
+  User ec2-user
+  HostName 78.65.43.21
+  ProxyJump jump0
+
