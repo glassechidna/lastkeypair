@@ -127,7 +127,7 @@ func (r *ReifiedLogin) PopulateByRestoreCache() {
 func (r *ReifiedLogin) WriteSshConfig() string {
 	jump := r.Response.Jumpboxes
 
-	filebuf := ""
+	filebuf := "IgnoreUnknown CertificateFile\n" // CertificateFile was introduced in 7.1
 
 	for idx, j := range jump {
 		filebuf = filebuf + fmt.Sprintf(`
