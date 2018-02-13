@@ -1,11 +1,12 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/inconshreveable/mousetrap"
+	"os"
+	"github.com/mitchellh/go-homedir"
+	"fmt"
 )
 
 var cfgFile string
@@ -22,10 +23,27 @@ validation prompts.
 `,
 }
 
+func fileExists(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
 func Execute() {
-	if err := RootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(-1)
+	if mousetrap.StartedByExplorer() {
+		configPath, _ := homedir.Expand("~/.lkp/config.yml")
+		defer keepTerminalVisible()
+
+		if !fileExists(configPath) {
+			setup()
+		} else {
+			fmt.Println("LastKeypair is a command-line tool, you should invoke it from the command prompt or Powershell.")
+		}
+	} else {
+		if err := RootCmd.Execute(); err != nil {
+
+		}
 	}
 }
 
