@@ -188,7 +188,31 @@ func init() {
 
 func awsProfileNames() []string {
 	cfgPath := shareddefaults.SharedConfigFilename()
-	cfg, _ := ini.Load(cfgPath)
+	cfg, err := ini.Load(cfgPath)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, `
+LastKeypair requires that you have a valid configuration file stored at %s.
+This file will look something like:
+
+	[default]
+	region = ap-southeast-2
+	mfa_serial = arn:aws:iam::0987654321:mfa/aidan.steele@example.com
+
+You will also need a corresponding credentials file stored at %s with 
+contents that look like:
+
+	[default]
+	aws_access_key_id = AKIA...
+	aws_secret_access_key = qGrg....
+
+LastKeypair will also work with named profiles if they are defined in your
+configuration file.
+
+Hit Enter now to close this prompt. After the above files are created, you
+can open LastKeypair again.
+`, cfgPath, shareddefaults.SharedCredentialsFilename())
+	}
 
 	rawProfiles := cfg.SectionStrings()
 	profiles := []string{}
