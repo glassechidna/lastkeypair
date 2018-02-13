@@ -80,6 +80,7 @@ func (params *TokenParams) ToKmsContext() map[string]*string {
 
 	if len(params.Principals) > 0 {
 		for i, principal := range params.Principals {
+			principal := principal
 			key := fmt.Sprintf("principal-%d", i)
 			context[key] = &principal
 		}
