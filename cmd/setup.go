@@ -31,8 +31,8 @@ func setup() {
 	kms := inputKmsKey()
 	writeLkpConfig(profile, lambda, kms)
 	askUserAboutMfa(profile)
-	lkpSsh := writeSshConfig()
-	addIncludeToSshConfig(lkpSsh)
+	writeSshConfig()
+	addIncludeToSshConfig("~/.ssh/config") // openssh on windows doesn't like a non-relative path
 	promptToAddToPath()
 	informNextSteps()
 }
