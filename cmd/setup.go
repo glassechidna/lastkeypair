@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 	"github.com/spf13/cobra"
 	"github.com/go-ini/ini"
-	"github.com/manifoldco/promptui"
 	"github.com/mitchellh/go-homedir"
 	"github.com/inconshreveable/mousetrap"
 	"github.com/glassechidna/lastkeypair/common"
 	"github.com/glassechidna/awscredcache/sneakyvendor/aws-shared-defaults"
+	"github.com/AlecAivazis/survey"
 )
 
 var setupCmd = &cobra.Command{
@@ -42,14 +42,14 @@ func setup() {
 }
 
 func askUserAboutMfa(profile string) {
-	prompt := promptui.Select{
-		Label: "Does your administrator require MFA to use LKP?",
-		Items: []string{"Yes", "No"},
+	prompt := &survey.Confirm{
+		Message: "Does your administrator require MFA to use LKP?",
 	}
 
-	_, result, _ := prompt.Run()
+	mfaRequired := false
+	survey.AskOne(prompt, &mfaRequired, nil)
 
-	if result == "Yes" {
+	if mfaRequired {
 		cfgPath := shareddefaults.SharedConfigFilename()
 		cfg, _ := ini.Load(cfgPath)
 		sect, err := cfg.GetSection(profile)
@@ -77,13 +77,14 @@ prompts.
 func selectAwsProfile() string {
 	profiles := awsProfileNames()
 
-	prompt := promptui.Select{
-		Label: "Which AWS profile do you want to use with LKP by default?",
-		Items: profiles,
-		Size: 15,
+	prompt := &survey.Select{
+		Message: "Which AWS profile do you want to use with LKP by default?",
+		Options: profiles,
+		PageSize: 15,
 	}
 
-	_, result, err := prompt.Run()
+	result := ""
+	err := survey.AskOne(prompt, &result, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -92,12 +93,13 @@ func selectAwsProfile() string {
 }
 
 func inputLambdaFunc() string {
-	prompt := promptui.Prompt{
-		Label: "What is the name/ARN of the LKP Lambda function?",
+	prompt := &survey.Input{
+		Message: "What is the name/ARN of the LKP Lambda function?",
 		Default: "LastKeypair",
 	}
 
-	result, err := prompt.Run()
+	result := ""
+	err := survey.AskOne(prompt, &result, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -106,12 +108,13 @@ func inputLambdaFunc() string {
 }
 
 func inputKmsKey() string {
-	prompt := promptui.Prompt{
-		Label: "What is the alias/key ID/ARN of the KMS key ID?",
+	prompt := &survey.Input{
+		Message: "What is the alias/key ID/ARN of the KMS key ID?",
 		Default: "alias/LastKeypair",
 	}
 
-	result, err := prompt.Run()
+	result := ""
+	err := survey.AskOne(prompt, &result, nil)
 	if err != nil {
 		panic(err)
 	}

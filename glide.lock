@@ -1,8 +1,10 @@
-hash: 8a68a5a3f6fc929be54258d6b4fd7ae3fb9fab797c4daf0a6bb76d6ddeef61ac
-updated: 2018-02-04T19:31:48.279642+11:00
+hash: 9c08a24c64382a20940044c06d3b4f7dd12fc0cf95e17fae7207fda2d3e5e0f5
+updated: 2018-02-13T14:46:05.687092+11:00
 imports:
+- name: github.com/AlecAivazis/survey
+  version: 0aa8b6a162b391fe2d95648b7677d1d6ac2090a6
 - name: github.com/aws/aws-sdk-go
-  version: 1b176c5c6b57adb03bb982c21930e708ebca5a77
+  version: ebc8a649dc2a7c78c9237c2575a63b3efd6d0a2d
   subpackages:
   - aws
   - aws/awserr
@@ -38,8 +40,6 @@ imports:
   subpackages:
   - qr
   - utils
-- name: github.com/chzyer/readline
-  version: f6d7a1f6fbf35bbf9beb80dc63c56a29dcfb759f
 - name: github.com/eawsy/aws-lambda-go-core
   version: e26eed6aa244a3d45aa693816a9c5faf39390fcd
   subpackages:
@@ -67,23 +67,14 @@ imports:
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
-- name: github.com/juju/ansiterm
-  version: 720a0952cc2ac777afc295d9861263e2a4cf96a1
-  subpackages:
-  - tabwriter
-- name: github.com/lunixbochs/vtclean
-  version: d14193dfc626125c831501c1c42340b4248e1f5a
 - name: github.com/magiconair/properties
   version: 51463bfca2576e06c62a8504b5c0f06d61312647
-- name: github.com/manifoldco/promptui
-  version: 8debffa8c66b4342872ef0465eee2aa01481849d
-  subpackages:
-  - list
-  - screenbuf
 - name: github.com/mattn/go-colorable
   version: 5411d3eea5978e6cdc258b30de592b60df6aba96
 - name: github.com/mattn/go-isatty
   version: 57fdcb988a5c543893cc61bce354a6e24ab70022
+- name: github.com/mgutz/ansi
+  version: 9520e82c474b0a04dd04f8a40959027271bab992
 - name: github.com/mitchellh/go-homedir
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/mitchellh/mapstructure
@@ -129,6 +120,11 @@ imports:
   subpackages:
   - transform
   - unicode/norm
+- name: gopkg.in/AlecAivazis/survey.v1
+  version: 0aa8b6a162b391fe2d95648b7677d1d6ac2090a6
+  subpackages:
+  - core
+  - terminal
 - name: gopkg.in/yaml.v2
   version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 testImports: []
