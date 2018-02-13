@@ -7,6 +7,7 @@ import (
 	"log"
 	"fmt"
 	"encoding/json"
+	"strings"
 )
 
 var tokenCreateCmd = &cobra.Command{
@@ -30,12 +31,16 @@ to quickly create a Cobra application.`,
 		to := viper.GetString("to")
 		typ := viper.GetString("principal")
 
+		pairs := viper.GetStringSlice("context")
+		userContext := pairsToMap(pairs, "=")
+
 		params := common.TokenParams{
 			FromId: fromId,
 			FromName: fromName,
 			FromAccount: fromAcct,
 			To: to,
 			Type: typ,
+			UserProvided: userContext,
 		}
 
 		ident, err := common.CallerIdentityUser(sess)
@@ -59,6 +64,19 @@ to quickly create a Cobra application.`,
 	},
 }
 
+func pairsToMap(pairs []string, delim string) map[string]string {
+	outMap := map[string]string{}
+
+	for _, pair := range pairs {
+		splitted := strings.SplitN(pair, delim, 2)
+		key := splitted[0]
+		val := splitted[1]
+		outMap[key] = val
+	}
+
+	return outMap
+}
+
 func init() {
 	advCmd.AddCommand(tokenCreateCmd)
 
@@ -71,6 +89,7 @@ func init() {
 	tokenCreateCmd.PersistentFlags().String("from-id", "", "(defaults to IAM userid)")
 	tokenCreateCmd.PersistentFlags().String("to", "", "")
 	tokenCreateCmd.PersistentFlags().String("principal", "user", "")
+	tokenCreateCmd.PersistentFlags().StringSlice("context", []string{}, "additional key=val pairs to include in the context")
 
 	viper.BindPFlags(tokenCreateCmd.PersistentFlags())
 }

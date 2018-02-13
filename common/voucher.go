@@ -50,7 +50,7 @@ func DecodeVoucherToken(encoded string) (*VoucherToken, error) {
 	return &token, nil
 }
 
-func Vouch(sess *session.Session, kmsKeyId, to, vouchee, context string) VoucherToken {
+func Vouch(sess *session.Session, kmsKeyId, to, vouchee, context string, userProvidedContext map[string]string) VoucherToken {
 	ident, err := CallerIdentityUser(sess)
 	if err != nil {
 		log.Panicf("error getting aws user identity: %+v\n", err)
@@ -64,6 +64,8 @@ func Vouch(sess *session.Session, kmsKeyId, to, vouchee, context string) Voucher
 		Type: ident.Type,
 		Vouchee: vouchee,
 		Context: context,
+		UserProvided: userProvidedContext,
+
 	}, kmsKeyId)
 
 	return VoucherToken(token)

@@ -91,7 +91,7 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 	}
 
 	principals = append(principals, *instanceArn)
-	token, err := hostCertToken(sess, *ident, kmsKeyId, *instanceArn, principals)
+	token, err := hostCertToken(sess, *ident, kmsKeyId, *instanceArn, principals, nil)
 
 	caPubkey, err := client.GetMetadata("public-keys/0/openssh-key")
 	if err != nil {
@@ -152,7 +152,7 @@ func getInstanceArn(client *ec2metadata.EC2Metadata) (*string, error) {
 	return &ret, nil
 }
 
-func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, instanceArn string, principals []string) (*common.Token, error) {
+func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, instanceArn string, principals []string, userProvidedContext map[string]string) (*common.Token, error) {
 	params := common.TokenParams{
 		FromId:          ident.UserId,
 		FromAccount:     ident.AccountId,
@@ -160,6 +160,7 @@ func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, in
 		Type:            "AssumedRole",
 		HostInstanceArn: instanceArn,
 		Principals: principals,
+		UserProvided: userProvidedContext,
 	}
 
 	ret := common.CreateToken(sess, params, kmsKeyId)

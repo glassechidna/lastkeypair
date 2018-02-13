@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 )
 
-func sshReqResp(sess *session.Session, lambdaFunc, kmsKeyId, instanceArn, username string, encodedVouchers []string) (UserCertReqJson, UserCertRespJson) {
+func sshReqResp(sess *session.Session, lambdaFunc, kmsKeyId, instanceArn, username string, encodedVouchers []string, userProvidedContext map[string]string) (UserCertReqJson, UserCertRespJson) {
 	kp, _ := MyKeyPair()
 
 	ident, err := CallerIdentityUser(sess)
@@ -42,6 +42,7 @@ func sshReqResp(sess *session.Session, lambdaFunc, kmsKeyId, instanceArn, userna
 		RemoteInstanceArn: instanceArn,
 		Vouchers: vouchers,
 		SshUsername: username,
+		UserProvided: userProvidedContext,
 	}, kmsKeyId)
 
 	req := UserCertReqJson{
@@ -100,7 +101,7 @@ func NewReifiedLoginWithCmd(cmd *cobra.Command, args []string) *ReifiedLogin {
 }
 
 func (r *ReifiedLogin) PopulateByInvoke() {
-	req, resp := sshReqResp(r.sess, r.lambdaFunc, r.kmsKeyId, r.InstanceArn, r.username, r.encodedVouchers)
+	req, resp := sshReqResp(r.sess, r.lambdaFunc, r.kmsKeyId, r.InstanceArn, r.username, r.encodedVouchers, nil)
 
 	certPath := r.CertificatePath()
 	ioutil.WriteFile(certPath, []byte(resp.SignedPublicKey), 0644)

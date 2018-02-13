@@ -19,6 +19,8 @@ type TokenParams struct {
 	Context string `json:",omitempty"`
 	Vouchers []VoucherToken `json:",omitempty"`
 
+	UserProvided map[string]string `json:",omitempty"` // additional user-defined context key-value pairs
+
 	// the reason we have both these fields (rather than overloading one "InstanceArn" field)
 	// is because we want to specify a KMS key policy that HostInstanceArn _MUST_ match
 	// the ec2:SourceInstanceARN if it exists. if we didn't do this, then anyone _not_ on
@@ -67,6 +69,14 @@ func (params *TokenParams) ToKmsContext() map[string]*string {
 	iterateParams(params, func(key string, val *string) {
 		context[key] = val
 	})
+
+	if len(params.UserProvided) > 0 {
+		for key, val := range params.UserProvided {
+			val := val
+			qualifiedKey := "userprovided-" + key
+			context[qualifiedKey] = &val
+		}
+	}
 
 	if len(params.Vouchers) > 0 {
 		for i, v := range params.Vouchers {

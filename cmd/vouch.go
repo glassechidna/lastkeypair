@@ -27,7 +27,7 @@ to quickly create a Cobra application.`,
 		vouchee, _ := cmd.PersistentFlags().GetString("vouchee")
 		context, _ := cmd.PersistentFlags().GetString("context")
 
-		token := common.Vouch(sess, keyId, to, vouchee, context)
+		token := common.Vouch(sess, keyId, to, vouchee, context, nil)
 		encoded := token.Encode()
 		fmt.Println(encoded)
 	},
