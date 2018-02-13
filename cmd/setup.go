@@ -148,6 +148,7 @@ func addIncludeToSshConfig(path string) {
 	sshConfig := string(sshConfigBytes)
 	sshConfig = fmt.Sprintf("Include %s\n\n%s", path, sshConfig)
 
+	os.MkdirAll(filepath.Dir(sshConfigPath), 0644)
 	ioutil.WriteFile(sshConfigPath, []byte(sshConfig), 0644)
 }
 
