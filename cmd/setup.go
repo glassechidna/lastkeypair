@@ -30,15 +30,11 @@ func setup() {
 	lambda := inputLambdaFunc()
 	kms := inputKmsKey()
 	writeLkpConfig(profile, lambda, kms)
-
 	askUserAboutMfa(profile)
-	os.Exit(1)
-
 	lkpSsh := writeSshConfig()
 	addIncludeToSshConfig(lkpSsh)
 	promptToAddToPath()
 	informNextSteps()
-	keepTerminalVisible()
 }
 
 func askUserAboutMfa(profile string) {
@@ -161,7 +157,7 @@ func promptToAddToPath() {
 	sort.Strings(paths)
 	joined := strings.Join(paths, "\n")
 
-	fmt.Sprintf(`
+	fmt.Printf(`
 The last step is to now add LastKeypair to somewhere on your PATH. Consider
 one of the following directories already on your PATH:
 
