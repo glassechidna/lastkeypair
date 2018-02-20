@@ -19,6 +19,7 @@ import (
 	"github.com/glassechidna/awscredcache"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/pquerna/otp/totp"
+	"os"
 )
 
 var ApplicationVersion string
@@ -99,6 +100,10 @@ func ClientAwsSession(profile, region string) *session.Session {
 		SharedConfigState: session.SharedConfigEnable,
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 		Config: aws.Config{Credentials: creds},
+	}
+
+	if len(os.Getenv("LKP_AWS_VERBOSE")) > 0 {
+		sessOpts.Config.LogLevel = aws.LogLevel(aws.LogDebugWithHTTPBody)
 	}
 
 	if len(profile) > 0 {
