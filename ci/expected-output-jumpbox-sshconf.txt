@@ -2,7 +2,7 @@ IgnoreUnknown CertificateFile
 
 Host jump0
   HostName 12.34.56.78
-  HostKeyAlias 
+  HostKeyAlias 12.34.56.78
   IdentityFile /home/travis/.lkp/id_rsa
   CertificateFile /home/travis/.lkp/id_rsa-cert.pub
   User ec2-user

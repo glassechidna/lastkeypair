@@ -133,7 +133,8 @@ func (a *AuthorizationLambda) DoUserReq(userReq UserCertReqJson) (*LkpUserCertAu
 	}
 
 	jumpPrincipals := []string{}
-	for _, j := range authResp.Jumpboxes {
+	for idx := range authResp.Jumpboxes {
+		j := &authResp.Jumpboxes[idx]
 		if len(j.HostKeyAlias) == 0 {
 			j.HostKeyAlias = j.Address
 		}
