@@ -1,16 +1,16 @@
-arn:aws:ec2:ap-southeast-2:607481581596:instance/i-0272eed8c4230a5f7
+arn:aws:ec2:ap-southeast-2:607481581596:instance/i-0094a75848b38d954
 
 HostCertificate /home/ec2-user/lkp-ci/ssh_host_rsa_key-cert.pub
 TrustedUserCAKeys /home/ec2-user/lkp-ci/cert_authority.pub
 AuthorizedPrincipalsFile /home/ec2-user/lkp-ci/authorized_principals
 lkp-ci/ssh_host_rsa_key-cert.pub:
         Type: ssh-rsa-cert-v01@openssh.com host certificate
-        Public key: RSA-CERT 86:75:74:43:71:8e:d3:14:59:84:89:15:eb:41:28:1d
-        Signing CA: RSA de:d2:a2:2b:2d:e1:25:ce:17:0b:6b:de:28:91:99:cb
-        Key ID: "arn:aws:ec2:ap-southeast-2:607481581596:instance/i-0272eed8c4230a5f7"
+        Public key: RSA-CERT SHA256:2DKS/u2HS7fAjllrDv+UG7R+Hlaw8m6iTtfVMStMP3Q
+        Signing CA: RSA SHA256:tjsHnvNdvAReyVVw6MdYFiLLWcCaDuwtZJx5peAXHs8
+        Key ID: "arn:aws:ec2:ap-southeast-2:607481581596:instance/i-0094a75848b38d954"
         Serial: 0
         Valid: after 2017-12-16T22:39:28
         Principals: 
-                arn:aws:ec2:ap-southeast-2:607481581596:instance/i-0272eed8c4230a5f7
+                arn:aws:ec2:ap-southeast-2:607481581596:instance/i-0094a75848b38d954
         Critical Options: (none)
         Extensions: (none)
