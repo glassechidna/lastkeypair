@@ -32,7 +32,7 @@ func setup() {
 	writeLkpConfig(profile, lambda, kms)
 	askUserAboutMfa(profile)
 	writeSshConfig()
-	addIncludeToSshConfig("~/.ssh/config") // openssh on windows doesn't like a non-relative path
+	addIncludeToSshConfig("~/.lkp/config") // openssh on windows doesn't like a non-relative path
 	promptToAddToPath()
 	informNextSteps()
 }
