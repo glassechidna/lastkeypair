@@ -129,12 +129,12 @@ kms-key: %s
 }
 
 func writeSshConfig() string {
-	str := `
-Match exec "lastkeypair ssh match --instance-arn %n --ssh-username %r"
-  IdentityFile /Users/aidan/.lkp/id_rsa
-  CertificateFile /Users/aidan/.lkp/id_rsa-cert.pub
-  ProxyCommand lastkeypair ssh proxy --instance-arn %h
-`
+	str := fmt.Sprintf(`
+Match exec "lastkeypair ssh match --instance-arn %%n --ssh-username %%r"
+  IdentityFile %s/id_rsa
+  CertificateFile /%s/id_rsa-cert.pub
+  ProxyCommand lastkeypair ssh proxy --instance-arn %%h
+`, common.AppDir(), common.AppDir())
 
 	lkpSshConfigPath := path.Join(common.AppDir(), "ssh_config")
 	ioutil.WriteFile(lkpSshConfigPath, []byte(str), 0644)
