@@ -167,11 +167,11 @@ func CreateToken(sess *session.Session, params TokenParams, keyId string) Token 
 		KeyId: &keyArn,
 		EncryptionContext: context,
 	}
-	
+
 	client := kmsClientForKeyId(sess, keyArn)
 	response, err := client.Encrypt(input)
 	if err != nil {
-		log.Panicf("Encrytion error: %s", err.Error())
+		log.Panicf("Encryption error: %s", err.Error())
 	}
 
 	blob := response.CiphertextBlob
