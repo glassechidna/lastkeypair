@@ -19,6 +19,8 @@ import (
 	"github.com/glassechidna/awscredcache"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/pquerna/otp/totp"
+	"os"
+	"github.com/glassechidna/lastkeypair/common/cli"
 )
 
 var ApplicationVersion string
@@ -101,6 +103,10 @@ func ClientAwsSession(profile, region string) *session.Session {
 		Config: aws.Config{Credentials: creds},
 	}
 
+	if len(os.Getenv("LKP_AWS_VERBOSE")) > 0 {
+		sessOpts.Config.LogLevel = aws.LogLevel(aws.LogDebugWithHTTPBody)
+	}
+
 	if len(profile) > 0 {
 		sessOpts.Profile = profile
 	}
@@ -151,13 +157,18 @@ func CreateToken(sess *session.Session, params TokenParams, keyId string) Token 
 		log.Panicf("Payload json encoding error: %s", err.Error())
 	}
 
-	input := &kms.EncryptInput{
-		Plaintext: plaintext,
-		KeyId: &keyId,
-		EncryptionContext: context,
+	keyArn, err := cli.FullKmsKey(sess, keyId)
+	if err != nil {
+		log.Panicf("Determining KMS key ARN from key id/alias: %s", err.Error())
 	}
 
-	client := kmsClientForKeyId(sess, keyId)
+	input := &kms.EncryptInput{
+		Plaintext: plaintext,
+		KeyId: &keyArn,
+		EncryptionContext: context,
+	}
+	
+	client := kmsClientForKeyId(sess, keyArn)
 	response, err := client.Encrypt(input)
 	if err != nil {
 		log.Panicf("Encrytion error: %s", err.Error())

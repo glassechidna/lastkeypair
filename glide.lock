@@ -1,10 +1,10 @@
 hash: 9c08a24c64382a20940044c06d3b4f7dd12fc0cf95e17fae7207fda2d3e5e0f5
-updated: 2018-02-13T14:46:05.687092+11:00
+updated: 2018-02-20T22:21:19.472511+11:00
 imports:
 - name: github.com/AlecAivazis/survey
   version: 0aa8b6a162b391fe2d95648b7677d1d6ac2090a6
 - name: github.com/aws/aws-sdk-go
-  version: ebc8a649dc2a7c78c9237c2575a63b3efd6d0a2d
+  version: 63324a33d7e42a386c04d4daec764a3de243492e
   subpackages:
   - aws
   - aws/awserr
@@ -22,6 +22,7 @@ imports:
   - aws/request
   - aws/session
   - aws/signer/v4
+  - internal/sdkrand
   - internal/shareddefaults
   - private/protocol
   - private/protocol/json/jsonutil

@@ -22,7 +22,7 @@ S3_OBJVER=$(aws s3api head-object --bucket $S3_BUCKET --key $S3_KEY --query Vers
 
 ./dl/sshello &
 sleep 1
-./lastkeypair_linux_amd64 ssh exec --instance-arn abcdef -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 -o HostName=localhost travis@target | tee out.log
+./lastkeypair_linux_amd64 ssh exec --kms-key $AWS_ACCOUNT_ID:alias/LastKeypair --instance-arn abcdef -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 -o HostName=localhost travis@target | tee out.log
 diff out.log ci/expected-output.txt
 
 ./lastkeypair_linux_amd64 ssh exec --instance-arn defghi --dry-run -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 | tee out.log
