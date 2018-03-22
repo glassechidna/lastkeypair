@@ -32,7 +32,7 @@ func setup() {
 	writeLkpConfig(profile, lambda, kms)
 	askUserAboutMfa(profile)
 	writeSshConfig()
-	addIncludeToSshConfig("~/.lkp/config") // openssh on windows doesn't like a non-relative path
+	addIncludeToSshConfig("~/.lkp/ssh_config") // openssh on windows doesn't like a non-relative path
 	promptToAddToPath()
 	informNextSteps()
 }
@@ -56,7 +56,7 @@ func askUserAboutMfa(profile string) {
 		_, err = sect.GetKey("mfa_serial")
 		if err == nil {
 			fmt.Printf(`
-Before SSHing into instances, you should first execute 'lastkeypair mfa' 
+Before SSHing into instances, you should first execute 'lastkeypair mfa'
 and follow the prompts.
 `)
 		} else {
@@ -199,7 +199,7 @@ This file will look something like:
 	region = ap-southeast-2
 	mfa_serial = arn:aws:iam::0987654321:mfa/aidan.steele@example.com
 
-You will also need a corresponding credentials file stored at %s with 
+You will also need a corresponding credentials file stored at %s with
 contents that look like:
 
 	[default]
