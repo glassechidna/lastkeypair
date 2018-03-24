@@ -132,7 +132,7 @@ func writeSshConfig() string {
 	str := fmt.Sprintf(`
 Match exec "lkp ssh match --instance-arn %%n --ssh-username %%r"
   IdentityFile %s/id_rsa
-  CertificateFile /%s/id_rsa-cert.pub
+  CertificateFile %s/id_rsa-cert.pub
   ProxyCommand lkp ssh proxy --instance-arn %%h
 `, common.AppDir(), common.AppDir())
 
