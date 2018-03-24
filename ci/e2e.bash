@@ -27,7 +27,7 @@ diff out.log ci/expected-output.txt
 
 ./lastkeypair_linux_amd64 ssh exec --instance-arn defghi --dry-run -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 | tee out.log
 diff out.log ci/expected-output-jumpbox.txt
-diff ~/.lkp/sshconf ci/expected-output-jumpbox-sshconf.txt
+diff ~/.lkp/tmp/defghi/sshconf ci/expected-output-jumpbox-sshconf.txt
 
 VOUCHER=$(./lastkeypair_linux_amd64 adv vouch --vouchee aidan --context moo)
 ./lastkeypair_linux_amd64 ssh exec --instance-arn defghi --voucher $VOUCHER --dry-run -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 travis@localhost | tee out.log

@@ -52,6 +52,12 @@ func AppDir() string {
 	return appDir
 }
 
+func TmpDir() string {
+	tmpDir := path.Join(AppDir(), "tmp")
+	os.MkdirAll(tmpDir, 0755)
+	return tmpDir
+}
+
 func MyKeyPair() (*Keypair, error) {
 	privkeyPath := path.Join(AppDir(), "id_rsa")
 	pubkeyPath := path.Join(AppDir(), "id_rsa.pub")

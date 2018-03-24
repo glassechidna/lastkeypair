@@ -3,7 +3,6 @@ package common
 import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"log"
-	"path"
 	"io/ioutil"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"encoding/json"
@@ -14,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"path/filepath"
+	"os"
 )
 
 func sshReqResp(sess *session.Session, lambdaFunc, kmsKeyId, instanceArn, username string, encodedVouchers []string) (UserCertReqJson, UserCertRespJson) {
@@ -109,18 +109,20 @@ func (r *ReifiedLogin) PopulateByInvoke() {
 	r.Response = &resp
 
 	serialized, _ := json.MarshalIndent(r, "", "  ")
-	ioutil.WriteFile(r.SerializedPath(), serialized, 0644)
+	ioutil.WriteFile(r.Filepath("conn.json"), serialized, 0644)
 }
 
-func (r *ReifiedLogin) SerializedPath() string {
-	// make name filesystem-friendly
-	arn := strings.Replace(r.InstanceArn, ":", "-", -1)
+func (r* ReifiedLogin) Filepath(name string) string {
+	arn := r.InstanceArn
+	arn = strings.Replace(arn, ":", "-", -1)
 	arn = strings.Replace(arn, "/", "-", -1)
-	return path.Join(AppDir(), fmt.Sprintf("conn-%s.json", arn))
+	arnDir := filepath.Join(TmpDir(), arn)
+	os.MkdirAll(arnDir, 0755)
+	return filepath.Join(arnDir, name)
 }
 
 func (r *ReifiedLogin) PopulateByRestoreCache() {
-	serialized, _ := ioutil.ReadFile(r.SerializedPath())
+	serialized, _ := ioutil.ReadFile(r.Filepath("conn.json"))
 	json.Unmarshal(serialized, r)
 }
 
@@ -159,7 +161,7 @@ Host target
 		filebuf = filebuf + fmt.Sprintf("  ProxyJump jump%d\n\n", len(jump) - 1)
 	}
 
-	sshconfPath := filepath.Join(AppDir(), "sshconf")
+	sshconfPath := r.Filepath("sshconf")
 	ioutil.WriteFile(sshconfPath, []byte(filebuf), 0700)
 
 	return sshconfPath
