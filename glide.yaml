@@ -16,6 +16,7 @@ import:
   subpackages:
   - totp
 - package: github.com/glassechidna/awscredcache
+  version: 8def02b6f71b890414c54f9cb7ded5f26904743b
 - package: github.com/inconshreveable/mousetrap
   version: ^1.0.0
 - package: gopkg.in/AlecAivazis/survey.v1
