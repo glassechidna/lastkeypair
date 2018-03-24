@@ -1,10 +1,10 @@
-hash: 9c08a24c64382a20940044c06d3b4f7dd12fc0cf95e17fae7207fda2d3e5e0f5
-updated: 2018-02-20T22:21:19.472511+11:00
+hash: 269ebbf758fd687103435cc3d504fae2d1922b1b759764bb4c7dc38bc1820faa
+updated: 2018-03-24T17:37:47.563166+11:00
 imports:
 - name: github.com/AlecAivazis/survey
   version: 0aa8b6a162b391fe2d95648b7677d1d6ac2090a6
 - name: github.com/aws/aws-sdk-go
-  version: 63324a33d7e42a386c04d4daec764a3de243492e
+  version: c8c4e0c0514d87f930c1342fef390db5329928b7
   subpackages:
   - aws
   - aws/awserr
@@ -22,6 +22,7 @@ imports:
   - aws/request
   - aws/session
   - aws/signer/v4
+  - internal/sdkio
   - internal/sdkrand
   - internal/shareddefaults
   - private/protocol
@@ -48,7 +49,7 @@ imports:
 - name: github.com/fsnotify/fsnotify
   version: 4da3e2cfbabc9f751898f250b49f2439785783a1
 - name: github.com/glassechidna/awscredcache
-  version: e6eaf8b5bb0b03fe94fd57ff77f7b50ed1f6fbd7
+  version: 8def02b6f71b890414c54f9cb7ded5f26904743b
   subpackages:
   - sneakyvendor/aws-shared-defaults
 - name: github.com/go-ini/ini
@@ -122,10 +123,22 @@ imports:
   - transform
   - unicode/norm
 - name: gopkg.in/AlecAivazis/survey.v1
-  version: 0aa8b6a162b391fe2d95648b7677d1d6ac2090a6
+  version: 9d3458c219bae9653d267883634bdb5375281fd8
   subpackages:
   - core
   - terminal
 - name: gopkg.in/yaml.v2
-  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
-testImports: []
+  version: 7f97868eec74b32b0982dd158a51a446d1da7eb5
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
+- name: github.com/stretchr/testify
+  version: 2aa2c176b9dab406a6970f6a55f513e8a8c8b18f
+  subpackages:
+  - assert
