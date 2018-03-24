@@ -1,1 +1,1 @@
-ssh -F /home/travis/.lkp/sshconf -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 target
+ssh -F /home/travis/.lkp/tmp/defghi/sshconf -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 target
