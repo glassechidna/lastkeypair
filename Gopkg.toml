@@ -35,10 +35,6 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/eawsy/aws-lambda-go-core"
-
-[[constraint]]
-  branch = "master"
   name = "github.com/glassechidna/awscredcache"
 
 [[constraint]]
@@ -68,3 +64,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/aws/aws-lambda-go"
+  version = "1.2.0"

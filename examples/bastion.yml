@@ -94,7 +94,7 @@ Resources:
           #!/bin/bash
           set -euxo pipefail
 
-          curl -L -o lkp https://github.com/glassechidna/lastkeypair/releases/download/${LastKeypairVersion}/lastkeypair_linux_amd64
+          curl -L -o lkp https://github.com/glassechidna/lastkeypair/releases/download/${LastKeypairVersion}/lkp_linux_amd64
           chmod +x lkp
           ./lkp host \ # there are several more flags you can pass in here
             --lambda-func ${LkpLambdaArn} \

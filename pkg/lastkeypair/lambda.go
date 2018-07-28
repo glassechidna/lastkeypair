@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"time"
 	"github.com/pkg/errors"
-	"github.com/eawsy/aws-lambda-go-core/service/lambda/runtime"
 	"os"
 	"strconv"
 	"github.com/aws/aws-sdk-go/service/ssm"
@@ -68,7 +67,7 @@ func getPstoreOrKmsOrRawBytes(name string) ([]byte, error) {
 	return bytes, nil
 }
 
-func LambdaHandle(evt json.RawMessage, ctx *runtime.Context) (interface{}, error) {
+func LambdaHandle(evt json.RawMessage) (interface{}, error) {
 	caKeyBytes, err := getPstoreOrKmsOrRawBytes("CA_KEY_BYTES")
 	if err != nil {
 		return nil, err

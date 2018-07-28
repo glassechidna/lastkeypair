@@ -22,22 +22,22 @@ S3_OBJVER=$(aws s3api head-object --bucket $S3_BUCKET --key $S3_KEY --query Vers
 
 ./dl/sshello &
 sleep 1
-./lastkeypair_linux_amd64 ssh exec --kms-key $AWS_ACCOUNT_ID:alias/LastKeypair --instance-arn abcdef -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 -o HostName=localhost travis@target | tee out.log
+./lkp_linux_amd64 ssh exec --kms-key $AWS_ACCOUNT_ID:alias/LastKeypair --instance-arn abcdef -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 -o HostName=localhost travis@target | tee out.log
 diff out.log ci/expected-output.txt
 
-./lastkeypair_linux_amd64 ssh exec --instance-arn defghi --dry-run -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 | tee out.log
+./lkp_linux_amd64 ssh exec --instance-arn defghi --dry-run -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 | tee out.log
 diff out.log ci/expected-output-jumpbox.txt
 diff ~/.lkp/tmp/defghi/sshconf ci/expected-output-jumpbox-sshconf.txt
 
-VOUCHER=$(./lastkeypair_linux_amd64 adv vouch --vouchee aidan --context moo)
-./lastkeypair_linux_amd64 ssh exec --instance-arn defghi --voucher $VOUCHER --dry-run -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 travis@localhost | tee out.log
+VOUCHER=$(./lkp_linux_amd64 adv vouch --vouchee aidan --context moo)
+./lkp_linux_amd64 ssh exec --instance-arn defghi --voucher $VOUCHER --dry-run -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 travis@localhost | tee out.log
 diff out.log ci/expected-output-vouched.txt
 
 # openssl aes-256-cbc -pass "pass:$CI_SSH_PASSPHRASE" -in ci/ec2-ssh-key.enc -out ci/ec2-ssh-key -d -a
 # chmod 0600 ci/ec2-ssh-key
 # cat ci/ec2-ssh-host-key >> ~/.ssh/known_hosts
 
-# scp -i ci/ec2-ssh-key lastkeypair_linux_amd64 ec2-user@$GE_CI_HOST:~/
+# scp -i ci/ec2-ssh-key lkp_linux_amd64 ec2-user@$GE_CI_HOST:~/
 
 # ssh -T -i ci/ec2-ssh-key ec2-user@$GE_CI_HOST << 'ENDSSH' | tee out.log
 #     rm -rf lkp-ci
@@ -51,7 +51,7 @@ diff out.log ci/expected-output-vouched.txt
 #       lkp-ci/ssh_host_rsa_key-cert.pub \
 #       lkp-ci/sshd_config
 
-#     ./lastkeypair_linux_amd64 \
+#     ./lkp_linux_amd64 \
 #       host \
 #       --authorized-principals-path lkp-ci/authorized_principals \
 #       --cert-authority-path        lkp-ci/cert_authority.pub \

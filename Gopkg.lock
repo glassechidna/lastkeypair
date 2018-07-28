@@ -10,6 +10,18 @@
   version = "v1.4.1"
 
 [[projects]]
+  digest = "1:7637de64e2bad97a7b9d1665e9cb0f9b709b1ef28d09232da908ead542bf89f0"
+  name = "github.com/aws/aws-lambda-go"
+  packages = [
+    "lambda",
+    "lambda/messages",
+    "lambdacontext",
+  ]
+  pruneopts = "UT"
+  revision = "4d30d0ff60440c2d0480a15747c96ee71c3c53d4"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:ce3d9b6bd789ee6ffb6394a0c431cb7f54ec8de1a3f36c2b909a333a71b5860e"
   name = "github.com/aws/aws-sdk-go"
   packages = [
@@ -67,14 +79,6 @@
   packages = ["spew"]
   pruneopts = "UT"
   revision = "04cdfd42973bb9c8589fd6a731800cf222fde1a9"
-
-[[projects]]
-  branch = "master"
-  digest = "1:8112776f2f96afc57b24ab3bd6913e8f1191e9eaf8e23b7e89b6c9e0b8465b51"
-  name = "github.com/eawsy/aws-lambda-go-core"
-  packages = ["service/lambda/runtime"]
-  pruneopts = "UT"
-  revision = "e26eed6aa244a3d45aa693816a9c5faf39390fcd"
 
 [[projects]]
   digest = "1:38c783cf85b9454cc02a1a8319239800ed0af6c1c864adf19cea0539e134adad"
@@ -332,6 +336,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/AlecAivazis/survey",
+    "github.com/aws/aws-lambda-go/lambda",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/credentials/stscreds",
@@ -342,7 +347,6 @@
     "github.com/aws/aws-sdk-go/service/lambda",
     "github.com/aws/aws-sdk-go/service/ssm",
     "github.com/aws/aws-sdk-go/service/sts",
-    "github.com/eawsy/aws-lambda-go-core/service/lambda/runtime",
     "github.com/glassechidna/awscredcache",
     "github.com/glassechidna/awscredcache/sneakyvendor/aws-shared-defaults",
     "github.com/go-ini/ini",

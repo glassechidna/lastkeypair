@@ -88,10 +88,10 @@ Resources:
   Function:
     Type: AWS::Lambda::Function
     Properties:
-      Handler: handler.Handle
+      Handler: lambda_linux_amd64
       FunctionName: !Ref FunctionName
       Role: !GetAtt LambdaRole.Arn
-      Runtime: python2.7
+      Runtime: go1.x
       Timeout: 60
       Code:
         S3Bucket: !Ref S3Bucket

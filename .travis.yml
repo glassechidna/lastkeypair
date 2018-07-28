@@ -18,13 +18,12 @@ install:
   - dep ensure
 
 script:
-  - make
+  - PATH=$(pwd)/upx-3.94-amd64_linux:$PATH make linux zip
   - ci/e2e.bash
-  - ./lastkeypair_linux_amd64 version
+  - ./lkp_linux_amd64 version
 
 before_deploy:
   - make otherplats
-  - upx-3.94-amd64_linux/upx lastkeypair_*
 
 deploy:
   provider: releases
@@ -33,9 +32,9 @@ deploy:
   skip_cleanup: true
   file:
     - handler.zip
-    - lastkeypair_linux_amd64
-    - lastkeypair_darwin_amd64
-    - lastkeypair_windows_amd64.exe
+    - lkp_linux_amd64
+    - lkp_darwin_amd64
+    - lkp_windows_amd64.exe
   on:
     tags: true
     repo: glassechidna/lastkeypair
