@@ -23,7 +23,7 @@ script:
   - ./lkp_linux_amd64 version
 
 before_deploy:
-  - make otherplats
+  - PATH=$(pwd)/upx-3.94-amd64_linux:$PATH make otherplats
 
 deploy:
   provider: releases
