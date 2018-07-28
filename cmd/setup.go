@@ -12,7 +12,7 @@ import (
 	"github.com/go-ini/ini"
 	"github.com/mitchellh/go-homedir"
 	"github.com/inconshreveable/mousetrap"
-	"github.com/glassechidna/lastkeypair/common"
+	"github.com/glassechidna/lastkeypair/pkg/lastkeypair"
 	"github.com/glassechidna/awscredcache/sneakyvendor/aws-shared-defaults"
 	"github.com/AlecAivazis/survey"
 )
@@ -125,7 +125,7 @@ lambda-func: %s
 kms-key: %s
 `, profile, lambda, kms)
 
-	ioutil.WriteFile(path.Join(common.AppDir(), "config.yml"), []byte(str), 0644)
+	ioutil.WriteFile(path.Join(lastkeypair.AppDir(), "config.yml"), []byte(str), 0644)
 }
 
 func writeSshConfig() string {
@@ -134,9 +134,9 @@ Match exec "lkp ssh match --instance-arn %%n --ssh-username %%r"
   IdentityFile %s/id_rsa
   CertificateFile %s/id_rsa-cert.pub
   ProxyCommand lkp ssh proxy --instance-arn %%h
-`, common.AppDir(), common.AppDir())
+`, lastkeypair.AppDir(), lastkeypair.AppDir())
 
-	lkpSshConfigPath := path.Join(common.AppDir(), "ssh_config")
+	lkpSshConfigPath := path.Join(lastkeypair.AppDir(), "ssh_config")
 	ioutil.WriteFile(lkpSshConfigPath, []byte(str), 0644)
 	return lkpSshConfigPath
 }

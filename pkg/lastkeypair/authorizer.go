@@ -1,4 +1,4 @@
-package common
+package lastkeypair
 
 import (
 	"github.com/aws/aws-sdk-go/service/lambda"

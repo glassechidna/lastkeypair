@@ -1,4 +1,4 @@
-package common
+package lastkeypair
 
 import (
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -20,7 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/pquerna/otp/totp"
 	"os"
-	"github.com/glassechidna/lastkeypair/common/cli"
+	"github.com/glassechidna/lastkeypair/pkg/lastkeypair/cli"
 )
 
 var ApplicationVersion string

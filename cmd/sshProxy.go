@@ -4,8 +4,8 @@ import (
 	"os"
 	"net"
 	"github.com/spf13/cobra"
-	"github.com/glassechidna/lastkeypair/common"
-	"github.com/glassechidna/lastkeypair/common/netcat"
+	"github.com/glassechidna/lastkeypair/pkg/lastkeypair"
+	"github.com/glassechidna/lastkeypair/pkg/lastkeypair/netcat"
 	"syscall"
 	"os/exec"
 	"fmt"
@@ -24,7 +24,7 @@ by their instance ARN rather than IP address.
 func proxy(cmd *cobra.Command, args []string) {
 	port, _ := cmd.PersistentFlags().GetString("port")
 
-	rei := common.NewReifiedLoginWithCmd(cmd, args)
+	rei := lastkeypair.NewReifiedLoginWithCmd(cmd, args)
 	rei.PopulateByRestoreCache()
 
 	jump := rei.Response.Jumpboxes

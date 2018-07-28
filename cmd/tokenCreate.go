@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/glassechidna/lastkeypair/common"
+	"github.com/glassechidna/lastkeypair/pkg/lastkeypair"
 	"log"
 	"fmt"
 	"encoding/json"
@@ -21,7 +21,7 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		profile := viper.GetString("profile")
 		region := viper.GetString("region")
-		sess := common.ClientAwsSession(profile, region)
+		sess := lastkeypair.ClientAwsSession(profile, region)
 
 		key := viper.GetString("kms-key")
 		fromName := viper.GetString("from-name")
@@ -30,7 +30,7 @@ to quickly create a Cobra application.`,
 		to := viper.GetString("to")
 		typ := viper.GetString("principal")
 
-		params := common.TokenParams{
+		params := lastkeypair.TokenParams{
 			FromId: fromId,
 			FromName: fromName,
 			FromAccount: fromAcct,
@@ -38,7 +38,7 @@ to quickly create a Cobra application.`,
 			Type: typ,
 		}
 
-		ident, err := common.CallerIdentityUser(sess)
+		ident, err := lastkeypair.CallerIdentityUser(sess)
 		if err != nil {
 			log.Panicf("No 'from' specified and could not determine caller identity: %s", err.Error())
 		}
@@ -53,7 +53,7 @@ to quickly create a Cobra application.`,
 			params.FromId = ident.UserId
 		}
 
-		token := common.CreateToken(sess, params, key)
+		token := lastkeypair.CreateToken(sess, params, key)
 		jsonToken, _ := json.Marshal(token)
 		fmt.Println(string(jsonToken))
 	},
