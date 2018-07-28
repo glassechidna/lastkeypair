@@ -56,7 +56,7 @@ configures the SSH server to:
 
 To do this you add something like this to your userdata:
 
-    curl -L -o lkp https://github.com/glassechidna/lastkeypair/releases/download/${VERSION}/lastkeypair_${OS}_${ARCH}
+    curl -L -o lkp https://github.com/glassechidna/lastkeypair/releases/download/${VERSION}/lkp_${OS}_${ARCH}
     chmod +x lkp
     ./lkp host # there are several flags you can pass in here if your Lambda or KMS key alias aren't the default
     service sshd restart # This is correct for Amazon Linux, can be different on other distros
