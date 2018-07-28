@@ -4,7 +4,7 @@ GOPATH  ?= $(HOME)/go
 
 VERSION = $(shell git describe --tags)
 DATE = $(shell date +%FT%T%z)
-GO_LDFLAGS := "-X github.com/glassechidna/lastkeypair/common.ApplicationVersion=$(VERSION) -X github.com/glassechidna/lastkeypair/common.ApplicationBuildDate=$(DATE)"
+GO_LDFLAGS := "-X github.com/glassechidna/lastkeypair/pkg/lastkeypair.ApplicationVersion=$(VERSION) -X github.com/glassechidna/lastkeypair/pkg/lastkeypair.ApplicationBuildDate=$(DATE)"
 
 all: linux build pack perm
 

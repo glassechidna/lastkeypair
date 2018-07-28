@@ -1,4 +1,4 @@
-package common
+package lastkeypair
 
 type UserCertReqJson struct {
 	// NOTE: be very careful of adding new fields to this struct. only fields

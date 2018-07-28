@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/glassechidna/lastkeypair/common"
+	"github.com/glassechidna/lastkeypair/pkg/lastkeypair"
 	"os/exec"
 	"syscall"
 	"os"
@@ -21,7 +21,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		rei := common.NewReifiedLoginWithCmd(cmd, args)
+		rei := lastkeypair.NewReifiedLoginWithCmd(cmd, args)
 		rei.PopulateByInvoke()
 
 		sshconfPath := rei.WriteSshConfig()

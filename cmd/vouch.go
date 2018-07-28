@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/glassechidna/lastkeypair/common"
+	"github.com/glassechidna/lastkeypair/pkg/lastkeypair"
 	"github.com/spf13/viper"
 )
 
@@ -20,14 +20,14 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		profile := viper.GetString("profile")
 		region, _ := cmd.PersistentFlags().GetString("region")
-		sess := common.ClientAwsSession(profile, region)
+		sess := lastkeypair.ClientAwsSession(profile, region)
 
 		keyId, _ := cmd.PersistentFlags().GetString("kms-key")
 		to, _ := cmd.PersistentFlags().GetString("to")
 		vouchee, _ := cmd.PersistentFlags().GetString("vouchee")
 		context, _ := cmd.PersistentFlags().GetString("context")
 
-		token := common.Vouch(sess, keyId, to, vouchee, context)
+		token := lastkeypair.Vouch(sess, keyId, to, vouchee, context)
 		encoded := token.Encode()
 		fmt.Println(encoded)
 	},

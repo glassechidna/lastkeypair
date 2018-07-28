@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"log"
-	"github.com/glassechidna/lastkeypair/common"
+	"github.com/glassechidna/lastkeypair/pkg/lastkeypair"
 	"github.com/aws/aws-sdk-go/aws"
 	"os"
 	"strings"
@@ -84,7 +84,7 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 	sess, err := hostSession()
 	client := ec2metadata.New(sess)
 
-	ident, err := common.CallerIdentityUser(sess)
+	ident, err := lastkeypair.CallerIdentityUser(sess)
 	instanceArn, err := getInstanceArn(client)
 	if err != nil {
 		return errors.Wrap(err, "fetching instance arn from metadata service")
@@ -98,8 +98,8 @@ func doit(hostKeyPath, signedHostKeyPath, caPubkeyPath, sshdConfigPath, authoriz
 		return errors.Wrap(err, "fetching ssh CA key")
 	}
 
-	response := common.HostCertRespJson{}
-	err = common.RequestSignedPayload(sess, functionName, common.HostCertReqJson{
+	response := lastkeypair.HostCertRespJson{}
+	err = lastkeypair.RequestSignedPayload(sess, functionName, lastkeypair.HostCertReqJson{
 		EventType: "HostCertReq",
 		Token: *token,
 		PublicKey: hostKey,
@@ -152,8 +152,8 @@ func getInstanceArn(client *ec2metadata.EC2Metadata) (*string, error) {
 	return &ret, nil
 }
 
-func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, instanceArn string, principals []string) (*common.Token, error) {
-	params := common.TokenParams{
+func hostCertToken(sess *session.Session, ident lastkeypair.StsIdentity, kmsKeyId, instanceArn string, principals []string) (*lastkeypair.Token, error) {
+	params := lastkeypair.TokenParams{
 		FromId:          ident.UserId,
 		FromAccount:     ident.AccountId,
 		To:              "LastKeypair",
@@ -162,7 +162,7 @@ func hostCertToken(sess *session.Session, ident common.StsIdentity, kmsKeyId, in
 		Principals: principals,
 	}
 
-	ret := common.CreateToken(sess, params, kmsKeyId)
+	ret := lastkeypair.CreateToken(sess, params, kmsKeyId)
 	return &ret, nil
 }
 

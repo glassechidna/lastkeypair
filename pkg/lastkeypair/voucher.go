@@ -1,4 +1,4 @@
-package common
+package lastkeypair
 
 import (
 	"encoding/json"

@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/glassechidna/lastkeypair/common"
+	"github.com/glassechidna/lastkeypair/pkg/lastkeypair"
 	"fmt"
 	"encoding/base64"
 )
@@ -20,7 +20,7 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		profile := viper.GetString("profile")
 		region := viper.GetString("region")
-		sess := common.ClientAwsSession(profile, region)
+		sess := lastkeypair.ClientAwsSession(profile, region)
 
 		key := viper.GetString("key-id")
 		fromName := viper.GetString("from-name")
@@ -32,8 +32,8 @@ to quickly create a Cobra application.`,
 
 		rawSig, _ := base64.StdEncoding.DecodeString(signature)
 
-		token := common.Token{
-			Params: common.TokenParams{
+		token := lastkeypair.Token{
+			Params: lastkeypair.TokenParams{
 				FromId: fromId,
 				FromName: fromName,
 				FromAccount: fromAcct,
@@ -43,7 +43,7 @@ to quickly create a Cobra application.`,
 			Signature: rawSig,
 		}
 
-		valid := common.ValidateToken(sess, token, key)
+		valid := lastkeypair.ValidateToken(sess, token, key)
 		fmt.Printf("token valid: %+v\n", valid)
 	},
 }
