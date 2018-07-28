@@ -14,7 +14,8 @@ go:
 
 install:
   - ci/setup_env.bash
-  - linux-amd64/glide install
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+  - dep ensure
 
 script:
   - make
