@@ -38,6 +38,8 @@ type LkpUserCertAuthorizationResponse struct {
 	CertificateOptions struct {
 		ForceCommand  *string `json:",omitempty"`
 		SourceAddress *string `json:",omitempty"`
+		PermitPortForwarding bool
+		PermitX11Forwarding bool
 	}
 }
 

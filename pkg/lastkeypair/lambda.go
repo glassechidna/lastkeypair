@@ -204,6 +204,13 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 	if auth.CertificateOptions.SourceAddress != nil {
 		permissions.Extensions["source-address"] = *auth.CertificateOptions.SourceAddress
 	}
+	if auth.CertificateOptions.PermitPortForwarding == false {
+		delete(permissions.Extensions, "permit-port-forwarding")
+	}
+	if auth.CertificateOptions.PermitX11Forwarding == false {
+		delete(permissions.Extensions, "permit-X11-forwarding")
+	}
+
 
 	signed, err := SignSsh(
 		config.CaKeyBytes,
