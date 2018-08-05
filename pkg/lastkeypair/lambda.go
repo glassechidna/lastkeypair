@@ -181,21 +181,22 @@ func GenerateSshPermissions(options *CertificateOptions) ssh.Permissions {
 			"permit-user-rc":          "",
 		},
 	}
-
-	if options.ForceCommand != nil {
-		SshPermissions.Extensions["force-command"] = *options.ForceCommand
-	}
-	if options.SourceAddress != nil {
-		SshPermissions.Extensions["source-address"] = *options.SourceAddress
-	}
-	if options.PermitX11Forwarding == false {
-		delete(SshPermissions.Extensions, "permit-X11-forwarding")
-	}
-	if options.PermitAgentForwarding == false {
-		delete(SshPermissions.Extensions, "permit-agent-forwarding")
-	}
-	if options.PermitPortForwarding == false {
-		delete(SshPermissions.Extensions, "permit-port-forwarding")
+	if options != nil {
+		if options.ForceCommand != nil {
+			SshPermissions.Extensions["force-command"] = *options.ForceCommand
+		}
+		if options.SourceAddress != nil {
+			SshPermissions.Extensions["source-address"] = *options.SourceAddress
+		}
+		if options.PermitX11Forwarding == false {
+			delete(SshPermissions.Extensions, "permit-X11-forwarding")
+		}
+		if options.PermitAgentForwarding == false {
+			delete(SshPermissions.Extensions, "permit-agent-forwarding")
+		}
+		if options.PermitPortForwarding == false {
+			delete(SshPermissions.Extensions, "permit-port-forwarding")
+		}
 	}
 
 	return SshPermissions
