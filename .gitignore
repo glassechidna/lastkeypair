@@ -1,4 +1,4 @@
 /vendor
 handler.zip
-lkp_*
-lambda_*
+/lkp_*
+/lambda_*
