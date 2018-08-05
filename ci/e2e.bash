@@ -23,15 +23,15 @@ S3_OBJVER=$(aws s3api head-object --bucket $S3_BUCKET --key $S3_KEY --query Vers
 ./dl/sshello &
 sleep 1
 ./lkp_linux_amd64 ssh exec --kms-key $AWS_ACCOUNT_ID:alias/LastKeypair --instance-arn abcdef -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 -o HostName=localhost travis@target | tee out.log
-diff out.log ci/expected-output.txt
+diff -w out.log ci/expected-output.txt
 
 ./lkp_linux_amd64 ssh exec --instance-arn defghi --dry-run -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 | tee out.log
-diff out.log ci/expected-output-jumpbox.txt
-diff ~/.lkp/tmp/defghi/sshconf ci/expected-output-jumpbox-sshconf.txt
+diff -w out.log ci/expected-output-jumpbox.txt
+diff -w ~/.lkp/tmp/defghi/sshconf ci/expected-output-jumpbox-sshconf.txt
 
 VOUCHER=$(./lkp_linux_amd64 adv vouch --vouchee aidan --context moo)
 ./lkp_linux_amd64 ssh exec --instance-arn defghi --voucher $VOUCHER --dry-run -- -o StrictHostKeyChecking=no -o LogLevel=QUIET -p 2222 travis@localhost | tee out.log
-diff out.log ci/expected-output-vouched.txt
+diff -w out.log ci/expected-output-vouched.txt
 
 # openssl aes-256-cbc -pass "pass:$CI_SSH_PASSPHRASE" -in ci/ec2-ssh-key.enc -out ci/ec2-ssh-key -d -a
 # chmod 0600 ci/ec2-ssh-key
