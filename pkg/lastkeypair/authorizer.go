@@ -32,12 +32,15 @@ type LkpUserCertAuthorizationRequest struct {
 
 type LkpUserCertAuthorizationResponse struct {
 	Authorized bool
+	Message string
 	Principals []string
 	Jumpboxes  []Jumpbox `json:",omitempty"`
 	TargetAddress string `json:",omitempty"`
 	CertificateOptions struct {
 		ForceCommand  *string `json:",omitempty"`
 		SourceAddress *string `json:",omitempty"`
+		PermitPortForwarding bool
+		PermitX11Forwarding bool
 	}
 }
 

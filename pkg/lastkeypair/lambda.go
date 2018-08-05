@@ -194,7 +194,11 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 	}
 
 	if !auth.Authorized {
-		return nil, errors.New("authorisation denied by auth lambda")
+		errorMessage := "authorisation denied by auth lambda"
+		if len(auth.Message) > 0 {
+			errorMessage = auth.Message
+		}
+		return nil, errors.New(errorMessage)
 	}
 
 	permissions := DefaultSshPermissions
@@ -204,6 +208,13 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 	if auth.CertificateOptions.SourceAddress != nil {
 		permissions.Extensions["source-address"] = *auth.CertificateOptions.SourceAddress
 	}
+	if auth.CertificateOptions.PermitPortForwarding == false {
+		delete(permissions.Extensions, "permit-port-forwarding")
+	}
+	if auth.CertificateOptions.PermitX11Forwarding == false {
+		delete(permissions.Extensions, "permit-X11-forwarding")
+	}
+
 
 	signed, err := SignSsh(
 		config.CaKeyBytes,
