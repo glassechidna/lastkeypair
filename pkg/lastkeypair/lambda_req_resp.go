@@ -26,6 +26,17 @@ type Jumpbox struct {
 	Address    string
 	User       string
 	HostKeyAlias string
+	Principals []string
+	SignedPublicKey string
+	CertificateOptions *CertificateOptions
+}
+
+type CertificateOptions struct {
+	ForceCommand  *string `json:",omitempty"`
+	SourceAddress *string `json:",omitempty"`
+	PermitX11Forwarding bool
+	PermitAgentForwarding bool
+	PermitPortForwarding bool
 }
 
 type HostCertRespJson struct {

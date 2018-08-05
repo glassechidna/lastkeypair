@@ -170,6 +170,38 @@ func DoHostCertReq(req HostCertReqJson, config LambdaConfig) (*HostCertRespJson,
 	return &resp, nil
 }
 
+func GenerateSshPermissions(options *CertificateOptions) ssh.Permissions {
+	var SshPermissions = ssh.Permissions{
+		CriticalOptions: map[string]string{},
+		Extensions: map[string]string{
+			"permit-X11-forwarding":   "",
+			"permit-agent-forwarding": "",
+			"permit-port-forwarding":  "",
+			"permit-pty":              "",
+			"permit-user-rc":          "",
+		},
+	}
+	if options != nil {
+		if options.ForceCommand != nil {
+			SshPermissions.Extensions["force-command"] = *options.ForceCommand
+		}
+		if options.SourceAddress != nil {
+			SshPermissions.Extensions["source-address"] = *options.SourceAddress
+		}
+		if options.PermitX11Forwarding == false {
+			delete(SshPermissions.Extensions, "permit-X11-forwarding")
+		}
+		if options.PermitAgentForwarding == false {
+			delete(SshPermissions.Extensions, "permit-agent-forwarding")
+		}
+		if options.PermitPortForwarding == false {
+			delete(SshPermissions.Extensions, "permit-port-forwarding")
+		}
+	}
+
+	return SshPermissions
+}
+
 func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson, error) {
 	sess := LambdaAwsSession()
 
@@ -201,20 +233,7 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 		return nil, errors.New(errorMessage)
 	}
 
-	permissions := DefaultSshPermissions
-	if auth.CertificateOptions.ForceCommand != nil {
-		permissions.Extensions["force-command"] = *auth.CertificateOptions.ForceCommand
-	}
-	if auth.CertificateOptions.SourceAddress != nil {
-		permissions.Extensions["source-address"] = *auth.CertificateOptions.SourceAddress
-	}
-	if auth.CertificateOptions.PermitPortForwarding == false {
-		delete(permissions.Extensions, "permit-port-forwarding")
-	}
-	if auth.CertificateOptions.PermitX11Forwarding == false {
-		delete(permissions.Extensions, "permit-X11-forwarding")
-	}
-
+	SshPermissions := GenerateSshPermissions(auth.CertificateOptions)
 
 	signed, err := SignSsh(
 		config.CaKeyBytes,
@@ -222,13 +241,38 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 		[]byte(req.PublicKey),
 		ssh.UserCert,
 		uint64(time.Now().Unix() + config.ValidityDuration),
-		DefaultSshPermissions,
+		SshPermissions,
 		identity,
 		auth.Principals,
 	)
 
+	for idx := range auth.Jumpboxes {
+		j := &auth.Jumpboxes[idx]
+		if len(j.HostKeyAlias) == 0 {
+			j.HostKeyAlias = j.Address
+		}
+		if len(j.Principals) == 0 {
+			j.Principals = append(j.Principals, j.Address)
+		}
+		jSshPermissions := GenerateSshPermissions(j.CertificateOptions)
+		jSigned, jErr := SignSsh(
+			config.CaKeyBytes,
+			config.CaKeyPassphraseBytes,
+			[]byte(req.PublicKey),
+			ssh.UserCert,
+			uint64(time.Now().Unix() + config.ValidityDuration),
+			jSshPermissions,
+			identity,
+			j.Principals,
+		)
+		j.SignedPublicKey = *jSigned
+		if jErr != nil {
+			return nil, errors.Wrap(err, "error signing ssh key for jumphost")
+		}
+	}
+
 	if err != nil {
-		return nil, errors.Wrap(err, "signing ssh key")
+		return nil, errors.Wrap(err, "error signing ssh key")
 	}
 
 	expiry := time.Now().Add(time.Duration(config.ValidityDuration) * time.Second)

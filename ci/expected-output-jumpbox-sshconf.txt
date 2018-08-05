@@ -4,7 +4,7 @@ Host jump0
   HostName 12.34.56.78
   HostKeyAlias 12.34.56.78
   IdentityFile /home/travis/.lkp/id_rsa
-  CertificateFile /home/travis/.lkp/id_rsa-cert.pub
+  CertificateFile /home/travis/.lkp/tmp/12.34.56.78/id_rsa-cert.pub
   User ec2-user
 
 Host target
