@@ -194,6 +194,10 @@ func DoUserCertReq(req UserCertReqJson, config LambdaConfig) (*UserCertRespJson,
 	}
 
 	if !auth.Authorized {
+		errorMessage := "authorisation denied by auth lambda"
+		if auth.Message {
+			errorMessage := auth.Message
+		}
 		return nil, errors.New("authorisation denied by auth lambda")
 	}
 
