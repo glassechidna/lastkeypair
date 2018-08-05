@@ -102,11 +102,14 @@ func NewReifiedLoginWithCmd(cmd *cobra.Command, args []string) *ReifiedLogin {
 func (r *ReifiedLogin) PopulateByInvoke() {
 	req, resp := sshReqResp(r.sess, r.lambdaFunc, r.kmsKeyId, r.InstanceArn, r.username, r.encodedVouchers)
 
-	certPath := r.CertificatePath()
-	ioutil.WriteFile(certPath, []byte(resp.SignedPublicKey), 0644)
-
 	r.Request = &req
 	r.Response = &resp
+
+	certPath := r.CertificatePath()
+	ioutil.WriteFile(certPath, []byte(resp.SignedPublicKey), 0644)
+	for _, j := range r.Response.Jumpboxes {
+		ioutil.WriteFile(j.JumpCertificatePath(), []byte(j.SignedPublicKey), 0644)
+	}
 
 	serialized, _ := json.MarshalIndent(r, "", "  ")
 	ioutil.WriteFile(r.Filepath("conn.json"), serialized, 0644)
@@ -119,6 +122,15 @@ func (r* ReifiedLogin) Filepath(name string) string {
 	arnDir := filepath.Join(TmpDir(), arn)
 	os.MkdirAll(arnDir, 0755)
 	return filepath.Join(arnDir, name)
+}
+
+func (j* Jumpbox) JumpboxFilepath() string {
+	arn := j.HostKeyAlias
+	arn = strings.Replace(arn, ":", "-", -1)
+	arn = strings.Replace(arn, "/", "-", -1)
+	arnDir := filepath.Join(TmpDir(), arn)
+	os.MkdirAll(arnDir, 0755)
+	return filepath.Join(arnDir)
 }
 
 func (r *ReifiedLogin) PopulateByRestoreCache() {
@@ -139,7 +151,7 @@ Host jump%d
   IdentityFile %s
   CertificateFile %s
   User %s
-`, idx, j.Address, j.HostKeyAlias, r.PrivateKeyPath(), r.CertificatePath(), j.User)
+`, idx, j.Address, j.HostKeyAlias, r.PrivateKeyPath(), j.JumpCertificatePath(), j.User)
 		if idx > 0 {
 			filebuf = filebuf + fmt.Sprintf("  ProxyJump jump%d\n\n", idx-1)
 		}
@@ -173,6 +185,10 @@ func (r *ReifiedLogin) PrivateKeyPath() string {
 
 func (r *ReifiedLogin) CertificatePath() string {
 	return filepath.Join(AppDir(), "id_rsa-cert.pub")
+}
+
+func (j* Jumpbox) JumpCertificatePath() string {
+	return filepath.Join(j.JumpboxFilepath(), "id_rsa-cert.pub")
 }
 
 func lambdaClientForKeyId(sess *session.Session, lambdaArn string) *lambda.Lambda {

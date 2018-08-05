@@ -36,12 +36,7 @@ type LkpUserCertAuthorizationResponse struct {
 	Principals []string
 	Jumpboxes  []Jumpbox `json:",omitempty"`
 	TargetAddress string `json:",omitempty"`
-	CertificateOptions struct {
-		ForceCommand  *string `json:",omitempty"`
-		SourceAddress *string `json:",omitempty"`
-		PermitPortForwarding bool
-		PermitX11Forwarding bool
-	}
+	CertificateOptions *CertificateOptions
 }
 
 type LkpHostCertAuthorizationRequest struct {
@@ -135,18 +130,9 @@ func (a *AuthorizationLambda) DoUserReq(userReq UserCertReqJson) (*LkpUserCertAu
 		return nil, errors.Wrap(err, "invoking user cert authorisation lambda")
 	}
 
-	jumpPrincipals := []string{}
-	for idx := range authResp.Jumpboxes {
-		j := &authResp.Jumpboxes[idx]
-		if len(j.HostKeyAlias) == 0 {
-			j.HostKeyAlias = j.Address
-		}
-		jumpPrincipals = append(jumpPrincipals, j.HostKeyAlias)
-	}
-
 	// if the lambda's response is missing the "Principals" key, default to the requested instance
 	if authResp.Principals == nil {
-		authResp.Principals = append(jumpPrincipals, p.RemoteInstanceArn)
+		authResp.Principals = []string{p.RemoteInstanceArn}
 	}
 
 	return &authResp, nil
