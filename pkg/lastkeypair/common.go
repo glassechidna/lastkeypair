@@ -204,14 +204,20 @@ func ValidateToken(sess *session.Session, token Token, expectedKeyId string) boo
 	payload := PlaintextPayload{}
 	err = json.Unmarshal([]byte(response.Plaintext), &payload)
 	if err != nil {
+		log.Printf("decoding token json")
 		return false
-		//return nil, errors.Wrap(err, "decoding token json")
 	}
 
 	now := int64(time.Now().Unix())
-	if now < payload.NotBefore || now > payload.NotAfter {
+	sway := int64(150) 
+	if now < payload.NotBefore - sway {
+		log.Printf("token yet to be valid")
 		return false
-		//return nil, errors.New("expired token")
+	}
+	
+	if now > payload.NotAfter + sway {
+		log.Printf("expired token")
+		return false
 	}
 
 	return true
