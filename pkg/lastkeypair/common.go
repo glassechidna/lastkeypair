@@ -127,8 +127,8 @@ func ClientAwsSession(profile, region string) *session.Session {
 }
 
 type PlaintextPayload struct {
-	NotBefore float64 // this is what json.unmarshal wants
-	NotAfter float64
+	NotBefore int64 // this is what json.unmarshal wants
+	NotAfter int64
 }
 
 func kmsClientForKeyId(sess *session.Session, keyId string) *kms.KMS {
@@ -144,7 +144,7 @@ func kmsClientForKeyId(sess *session.Session, keyId string) *kms.KMS {
 func CreateToken(sess *session.Session, params TokenParams, keyId string) Token {
 	context := params.ToKmsContext()
 
-	now := float64(time.Now().Unix())
+	now := int64(time.Now().Unix())
 	end := now + 3600 // 1 hour
 
 	payload := PlaintextPayload{
@@ -208,7 +208,7 @@ func ValidateToken(sess *session.Session, token Token, expectedKeyId string) boo
 		//return nil, errors.Wrap(err, "decoding token json")
 	}
 
-	now := float64(time.Now().Unix())
+	now := int64(time.Now().Unix())
 	if now < payload.NotBefore || now > payload.NotAfter {
 		return false
 		//return nil, errors.New("expired token")
