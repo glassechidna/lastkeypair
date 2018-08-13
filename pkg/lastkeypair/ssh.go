@@ -84,11 +84,14 @@ func NewReifiedLoginWithCmd(cmd *cobra.Command, args []string) *ReifiedLogin {
 	kmsKeyId := viper.GetString("kms-key")
 	instanceArn, _ := cmd.PersistentFlags().GetString("instance-arn")
 	username, _ := cmd.PersistentFlags().GetString("ssh-username")
+	region, _ := cmd.PersistentFlags().GetString("region")
 	vouchers, _ := cmd.PersistentFlags().GetStringSlice("voucher")
 	
 	instanceArnParts := strings.Split(instanceArn, ":")
-	instanceRegion := instanceArnParts[3]
-	sess := ClientAwsSession(profile, instanceRegion)
+	if len(instanceArnParts) > 3 {
+		region = instanceArnParts[3]
+	}
+	sess := ClientAwsSession(profile, region)
 
 	return &ReifiedLogin{
 		sess:            sess,
