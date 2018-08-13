@@ -79,14 +79,16 @@ type ReifiedLogin struct {
 
 func NewReifiedLoginWithCmd(cmd *cobra.Command, args []string) *ReifiedLogin {
 	profile := viper.GetString("profile")
-	region, _ := cmd.PersistentFlags().GetString("region")
-	sess := ClientAwsSession(profile, region)
 
 	lambdaFunc := viper.GetString("lambda-func")
 	kmsKeyId := viper.GetString("kms-key")
 	instanceArn, _ := cmd.PersistentFlags().GetString("instance-arn")
 	username, _ := cmd.PersistentFlags().GetString("ssh-username")
 	vouchers, _ := cmd.PersistentFlags().GetStringSlice("voucher")
+	
+	instanceArnParts := strings.Split(instanceArn, ":")
+	instanceRegion := instanceArnParts[3]
+	sess := ClientAwsSession(profile, instanceRegion)
 
 	return &ReifiedLogin{
 		sess:            sess,
